@@ -94,13 +94,11 @@ const Login = () => {
 };
 
 export default Login;
-*/
-import axios from 'axios';
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+*/import React, { useState } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -119,83 +117,93 @@ const Login = () => {
   const handelSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
-      const login = await axios.post(`/api/auth/login`, userInput);
+      const login = await axios.post("/api/auth/login", userInput);
       const data = login.data;
+
       if (data.success === false) {
         setLoading(false);
-        console.log(data.message);
+        toast.error(data.message);
+        return;
       }
+
       toast.success(data.message);
-      localStorage.setItem('chatapp', JSON.stringify(data));
+      localStorage.setItem("chatapp", JSON.stringify(data));
       setAuthUser(data);
+      navigate("/");
       setLoading(false);
-      navigate('/');
     } catch (error) {
       setLoading(false);
-      console.log(error);
       toast.error(error?.response?.data?.message);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      <div className="w-full max-w-md p-8 rounded-2xl shadow-2xl bg-white/10 backdrop-blur-lg border border-gray-700">
-        <h1 className="text-4xl font-extrabold text-center text-white mb-6">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] relative overflow-hidden">
+
+      {/* BG Circles */}
+      <div className="absolute w-72 h-72 bg-purple-500/30 blur-3xl rounded-full top-10 left-10 animate-pulse"></div>
+      <div className="absolute w-96 h-96 bg-indigo-500/20 blur-3xl rounded-full bottom-10 right-10 animate-pulse"></div>
+
+      {/* Card */}
+      <div className="w-full max-w-md p-10 rounded-3xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl relative z-10 animate-[fadeIn_0.6s_ease]">
+
+        <h1 className="text-center text-4xl font-extrabold text-white mb-3 tracking-wide drop-shadow-lg">
           Welcome Back 👋
         </h1>
-        <p className="text-center text-gray-300 mb-8">
-          Login to <span className="text-indigo-400 font-semibold">Chatters</span>
+
+        <p className="text-center text-gray-300 mb-10">
+          Login to
+          <span className="font-bold text-indigo-400"> Chatters</span>
         </p>
 
-        <form onSubmit={handelSubmit} className="flex flex-col space-y-6">
+        <form onSubmit={handelSubmit} className="space-y-7">
           <div>
-            <label htmlFor="email" className="block text-gray-300 font-semibold mb-2">
+            <label className="text-gray-200 font-semibold mb-2 block">
               Email
             </label>
             <input
               id="email"
               type="email"
-              onChange={handelInput}
-              placeholder="Enter your email"
               required
-              className="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              onChange={handelInput}
+              placeholder="Enter Email"
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-gray-300 outline-none border border-white/30 focus:ring-2 focus:ring-indigo-400 backdrop-blur-md"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-gray-300 font-semibold mb-2">
+            <label className="text-gray-200 font-semibold mb-2 block">
               Password
             </label>
             <input
               id="password"
               type="password"
-              onChange={handelInput}
-              placeholder="Enter your password"
               required
-              className="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              onChange={handelInput}
+              placeholder="Enter Password"
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-gray-300 outline-none border border-white/30 focus:ring-2 focus:ring-indigo-400 backdrop-blur-md"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 rounded-lg bg-indigo-600 text-white font-bold text-lg hover:bg-indigo-700 transition-transform transform hover:scale-105 shadow-lg"
+            className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 font-bold text-white text-lg shadow-lg hover:shadow-indigo-500/40 hover:scale-[1.02]"
           >
-            {loading ? 'Loading...' : 'Login'}
+            {loading ? "Loading..." : "Login"}
           </button>
         </form>
 
-        <div className="pt-6 text-center">
-          <p className="text-gray-400">
-            Don’t have an account?{' '}
-            <Link
-              to="/register"
-              className="text-indigo-400 font-bold underline hover:text-indigo-300 transition-colors"
-            >
-              Register Now
-            </Link>
-          </p>
-        </div>
+        <p className="text-center text-gray-300 mt-8">
+          Don’t have an account?{" "}
+          <Link
+            className="text-indigo-400 hover:text-indigo-300 font-bold underline"
+            to="/register"
+          >
+            Register
+          </Link>
+        </p>
       </div>
     </div>
   );

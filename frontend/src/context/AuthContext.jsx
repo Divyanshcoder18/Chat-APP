@@ -1,25 +1,15 @@
-import { createContext, useContext, useState } from "react";
+import { createContext , useContext ,useState } from "react";
 
 export const AuthContext = createContext();
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export  const useAuth =()=>{
+    return useContext(AuthContext)
+}
 
-export const AuthContextProvider = ({ children }) => {
-  let savedUser = null;
+export const AuthContextProvider =({children})=>{
+    const [authUser , setAuthUser] = useState(JSON.parse(localStorage.getItem('chatapp')) || null);
 
-  try {
-    savedUser = JSON.parse(localStorage.getItem("chatapp"));
-  } catch (err) {
-    savedUser = null;
-  }
-
-  const [authUser, setAuthUser] = useState(savedUser);
-
-  return (
-    <AuthContext.Provider value={{ authUser, setAuthUser }}>
-      {children}
+    return <AuthContext.Provider value={{authUser ,setAuthUser}}>
+        {children}
     </AuthContext.Provider>
-  );
-};
+}

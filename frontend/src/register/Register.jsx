@@ -7,10 +7,11 @@ import { useAuth } from "../context/AuthContext";
 const Register = () => {
   const navigate = useNavigate();
   const { setAuthUser } = useAuth();
+
   const [loading, setLoading] = useState(false);
   const [inputData, setInputData] = useState({});
 
-  const handelInput = (e) => {
+  const handleInput = (e) => {
     setInputData({
       ...inputData,
       [e.target.id]: e.target.value,
@@ -24,7 +25,7 @@ const Register = () => {
     }));
   };
 
-  const handelSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
@@ -45,130 +46,140 @@ const Register = () => {
       toast.success(data.message);
       localStorage.setItem("chatapp", JSON.stringify(data));
       setAuthUser(data);
-      navigate("/login");
+      navigate("/");
     } catch (error) {
-      toast.error(error?.response?.data?.message);
+      toast.error(error?.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black px-4">
-      <div className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-2xl shadow-2xl">
-        
-        <h1 className="text-4xl font-extrabold text-center text-white mb-6 tracking-wide">
-          Create Account
-          <span className="block text-indigo-400">Chatters</span>
-        </h1>
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] relative overflow-hidden">
 
-        <form onSubmit={handelSubmit} className="space-y-4 text-white">
-          
+      {/* Neon floating circles */}
+      <div className="absolute w-80 h-80 bg-pink-500/20 blur-3xl rounded-full left-10 top-10 animate-pulse"></div>
+      <div className="absolute w-96 h-96 bg-indigo-500/20 blur-3xl rounded-full bottom-10 right-10 animate-pulse"></div>
+
+      {/* Form Card */}
+      <div className="w-full max-w-lg p-10 rounded-3xl backdrop-blur-2xl bg-white/10 border border-white/20 shadow-2xl relative z-10 animate-[fadeIn_0.6s_ease]">
+
+        <h1 className="text-4xl font-extrabold text-center text-white mb-2">
+          Create Account
+        </h1>
+        <p className="text-center text-indigo-300 font-semibold mb-8 tracking-wide">
+          Join <span className="text-white font-bold">Chatters</span>
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+
           {/* Full Name */}
           <div>
-            <label className="block mb-1 font-semibold">Full Name</label>
+            <label className="text-gray-200 font-semibold mb-1 block">Full Name</label>
             <input
               id="fullname"
-              type="text"
-              onChange={handelInput}
-              placeholder="Enter your full name"
+              onChange={handleInput}
               required
-              className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 focus:ring-2 focus:ring-indigo-400 outline-none"
+              placeholder="Enter full name"
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-gray-300 border border-white/30 focus:ring-2 focus:ring-indigo-400 outline-none"
             />
           </div>
 
           {/* Username */}
           <div>
-            <label className="block mb-1 font-semibold">Username</label>
+            <label className="text-gray-200 font-semibold mb-1 block">Username</label>
             <input
               id="username"
-              type="text"
-              onChange={handelInput}
-              placeholder="Choose a username"
+              onChange={handleInput}
               required
-              className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 focus:ring-2 focus:ring-indigo-400 outline-none"
+              placeholder="Choose a username"
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-gray-300 border border-white/30 focus:ring-2 focus:ring-indigo-400 outline-none"
             />
           </div>
 
           {/* Email */}
           <div>
-            <label className="block mb-1 font-semibold">Email</label>
+            <label className="text-gray-200 font-semibold mb-1 block">Email</label>
             <input
               id="email"
               type="email"
-              onChange={handelInput}
-              placeholder="Enter your email"
+              onChange={handleInput}
               required
-              className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 focus:ring-2 focus:ring-indigo-400 outline-none"
+              placeholder="Enter email"
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-gray-300 border border-white/30 focus:ring-2 focus:ring-indigo-400 outline-none"
             />
           </div>
 
           {/* Password */}
           <div>
-            <label className="block mb-1 font-semibold">Password</label>
+            <label className="text-gray-200 font-semibold mb-1 block">Password</label>
             <input
               id="password"
               type="password"
-              onChange={handelInput}
-              placeholder="Enter password"
+              onChange={handleInput}
               required
-              className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 focus:ring-2 focus:ring-indigo-400 outline-none"
+              placeholder="Enter password"
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-gray-300 border border-white/30 focus:ring-2 focus:ring-indigo-400 outline-none"
             />
           </div>
 
           {/* Confirm Password */}
           <div>
-            <label className="block mb-1 font-semibold">Confirm Password</label>
+            <label className="text-gray-200 font-semibold mb-1 block">
+              Confirm Password
+            </label>
             <input
               id="confpassword"
               type="password"
-              onChange={handelInput}
-              placeholder="Confirm password"
+              onChange={handleInput}
               required
-              className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 focus:ring-2 focus:ring-indigo-400 outline-none"
+              placeholder="Re-enter password"
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-gray-300 border border-white/30 focus:ring-2 focus:ring-indigo-400 outline-none"
             />
           </div>
 
-          {/* Gender */}
-          <div className="flex items-center gap-6 mt-2">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={inputData.gender === "male"}
-                onChange={() => selectGender("male")}
-                className="checkbox checkbox-info"
-              />
-              <span className="font-semibold">Male</span>
-            </label>
+          {/* Gender Selection */}
+          <div className="flex items-center gap-6 pt-2">
+            <div
+              onClick={() => selectGender("male")}
+              className={`cursor-pointer px-4 py-2 rounded-xl border transition-all duration-200 ${
+                inputData.gender === "male"
+                  ? "bg-indigo-600 border-indigo-400 text-white scale-105"
+                  : "bg-white/10 border-white/30 text-gray-300 hover:bg-white/20"
+              }`}
+            >
+              Male
+            </div>
 
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={inputData.gender === "female"}
-                onChange={() => selectGender("female")}
-                className="checkbox checkbox-info"
-              />
-              <span className="font-semibold">Female</span>
-            </label>
+            <div
+              onClick={() => selectGender("female")}
+              className={`cursor-pointer px-4 py-2 rounded-xl border transition-all duration-200 ${
+                inputData.gender === "female"
+                  ? "bg-pink-500 border-pink-300 text-white scale-105"
+                  : "bg-white/10 border-white/30 text-gray-300 hover:bg-white/20"
+              }`}
+            >
+              Female
+            </div>
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full py-3 mt-4 bg-indigo-600 hover:bg-indigo-700 transition-all duration-300 rounded-lg text-lg font-semibold shadow-lg hover:scale-[1.02]"
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold rounded-xl shadow-lg transition-transform duration-300 hover:scale-[1.03]"
           >
             {loading ? "Creating Account..." : "Register"}
           </button>
         </form>
 
         {/* Login Link */}
-        <p className="text-center text-gray-300 mt-4">
+        <p className="text-center text-gray-300 mt-6">
           Already have an account?{" "}
           <Link
             to="/login"
-            className="text-indigo-400 font-bold hover:underline"
+            className="text-indigo-400 hover:text-indigo-300 font-bold underline"
           >
-            Login Now
+            Login
           </Link>
         </p>
       </div>
@@ -177,7 +188,6 @@ const Register = () => {
 };
 
 export default Register;
-
 
 
 
