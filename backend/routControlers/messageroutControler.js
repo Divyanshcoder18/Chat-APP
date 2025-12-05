@@ -1,0 +1,189 @@
+import Conversation from "../Models/conversationModels.js";
+import Message from "../Models/messageSchema.js";
+import { getReciverSocketId,io } from "../Socket/socket.js";
+
+export const sendMessage =async(req,res)=>{
+try {
+    const {messages} = req.body;
+    const {id:reciverId} = req.params;
+    const senderId = req.user._conditions._id;
+
+
+    let chats = await Conversation.findOne({
+        participants:{$all:[senderId , reciverId]}
+    })
+
+    if(!chats){
+        chats = await Conversation.create({
+            participants:[senderId , reciverId],
+        })
+    }
+
+    const newMessages = new Message({
+        senderId,
+        reciverId,
+        message:messages,
+        conversationId: chats._id
+    })
+
+    if(newMessages){
+        chats.messages.push(newMessages._id);
+    }
+
+    await Promise.all([chats.save(),newMessages.save()]);
+
+     //SOCKET.IO function 
+     const reciverSocketId = getReciverSocketId(reciverId);
+     if(reciverSocketId){
+        io.to(reciverSocketId).emit("newMessage",newMessages)
+     }
+
+    res.status(201).send(newMessages)
+
+} catch (error) {
+    res.status(500).send({
+        success: false,
+        message: error
+    })
+    console.log(`error in sendMessage ${error}`);
+}
+}
+
+
+export const getMessages=async(req,res)=>{
+try {
+    const {id:reciverId} = req.params;
+    const senderId = req.user._conditions._id;
+
+    const chats = await Conversation.findOne({
+        participants:{$all:[senderId , reciverId]}
+    }).populate("messages")
+
+    if(!chats)  return res.status(200).send([]);
+    const message = chats.messages;
+    res.status(200).send(message)
+} catch (error) {
+    res.status(500).send({
+        success: false,
+        message: error
+    })
+    console.log(`error in getMessage ${error}`);
+}
+}
+
+
+
+/*import Message from "../Models/messageSchema.js";
+import Conversation from "../Models/conversationModels.js";
+
+export const sendMessage = async (req, res) => {
+    try {
+        const { message } = req.body;
+        const { id: recieverId } = req.params;
+        const senderId = req.user._id;
+
+        let chats = await Conversation.findOne({
+            participants: { $all: [senderId, recieverId] }
+        });
+
+        if (!chats) {
+            chats = await Conversation.create({
+                participants: [senderId, recieverId],
+                messages:[] 
+            });
+        }
+
+        const newMessages = new Message({
+            senderId,
+            recieverId,
+            message,
+            ConversationId: chats._id,
+        });
+
+        if (newMessages) {
+            chats.message.push(newMessages._id);
+        }
+
+        // SOCKET
+        await Promise.all([chats.save(),newMessages.save()]) ; 
+
+    } catch (error) {
+        console.error("Error in sendMessage:", error.message);
+    }
+};
+
+export const getMessages = async (req,res,next)=>{
+    try{
+        const { id: recieverId } = req.params;
+        const senderId = req.user._id;
+
+        const chats = await Conversation.findOne({
+             participants: {$all: [senderId, recieverId]}    
+        }).populate("messages") 
+        // hme message chahiye na isiliye populate kia or ye dono id dekh ke 
+     if(!chats){
+      return   res.status(200).send([]);
+
+     }
+    const message = chats.messages ;
+    res.status(200).send(message) ; 
+    
+    }
+    catch (error) {
+        console.error("Error in sendMessage:", error.message);
+    }
+    
+
+}*/
+/*
+
+
+✅ YOUR LINES
+chats.messages.push(newMessage._id);
+
+await Promise.all([chats.save(), newMessage.save()]);
+
+res.status(201).send(newMessage);
+
+🔹 1️⃣ chats.messages.push(newMessage._id);
+✅ What it literally does:
+
+It adds the ID of the new message into the conversation’s message list.
+
+✅ What is chats?
+
+chats is your Conversation document, something like this in MongoDB:
+
+{
+  _id: 101,
+  participants: [userA, userB],
+  messages: []   // empty before
+}
+
+✅ What is newMessage._id?
+
+When you create:
+
+const newMessage = new Message({...});
+
+
+MongoDB automatically gives it an ID like:
+
+ObjectId("777abc")
+
+✅ After this line runs:
+chats.messages.push(newMessage._id);
+
+
+Your conversation becomes:
+
+{
+  _id: 101,
+  participants: [userA, userB],
+  messages: ["777abc"] ✅
+}
+
+*/
+
+
+
