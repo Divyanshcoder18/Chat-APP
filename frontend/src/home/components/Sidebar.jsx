@@ -214,74 +214,80 @@ const Sidebar = ({ onSelectUser }) => {
   const { authUser, setAuthUser } = useAuth();
 
   const [searchInput, setSearchInput] = useState("");
-  const [searchUser, setSearchuser] = useState([]);
+  const [searchUser, setSearchUser] = useState([]);
   const [chatUser, setChatUser] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedUserId, setSetSelectedUserId] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState(null);
   const [newMessageUsers, setNewMessageUsers] = useState("");
 
   const { setSelectedConversation } = userConversation();
   const { onlineUser, socket } = useSocketContext();
 
-  // ✅ Listen for new messages
+  const normalize = (id) => String(id);
+
+  // 🚀 NEW MESSAGE LISTENER
   useEffect(() => {
-    socket?.on("newMessage", (newMessage) => setNewMessageUsers(newMessage));
-    return () => socket?.off("newMessage");
+    if (!socket) return;
+
+    const handleNewMessage = (data) => {
+      setNewMessageUsers(data);
+    };
+
+    socket.on("newMessage", handleNewMessage);
+
+    return () => socket.off("newMessage", handleNewMessage);
   }, [socket]);
 
-  // ✅ Fetch chat users
+  // 🚀 LOAD CHAT USERS
   useEffect(() => {
-    const chatUserHandler = async () => {
+    const loadChatters = async () => {
       setLoading(true);
       try {
-        const chatters = await axios.get(`/api/user/currentchatters`);
-        const data = chatters.data;
-        if (!data.success) console.log(data.message);
-        setChatUser(data);
+        const res = await axios.get(`/api/user/currentchatters`);
+        setChatUser(res.data);
       } catch (error) {
         console.log(error);
       }
       setLoading(false);
     };
-    chatUserHandler();
+    loadChatters();
   }, []);
 
-  const handelSearchSubmit = async (e) => {
+  const handleSearchSubmit = async (e) => {
     e.preventDefault();
+
+    if (!searchInput.trim()) return;
+
     setLoading(true);
     try {
-      const search = await axios.get(`/api/user/search?search=${searchInput}`);
-      const data = search.data;
-
-      if (!data.success) console.log(data.message);
-
-      if (data.length === 0) toast.info("User Not Found");
-      else setSearchuser(data);
-    } catch (error) {
-      console.log(error);
+      const res = await axios.get(`/api/user/search?search=${searchInput}`);
+      setSearchUser(res.data);
+      if (res.data.length === 0) toast.info("User Not Found");
+    } catch (err) {
+      console.log(err);
     }
     setLoading(false);
   };
 
-  const handelUserClick = (user) => {
+  const handleUserClick = (user) => {
     onSelectUser(user);
     setSelectedConversation(user);
-    setSetSelectedUserId(user._id);
-    setNewMessageUsers("");
+    setSelectedUserId(user._id);
+    setNewMessageUsers(""); // reset new-message bubble
   };
 
-  const handSearchback = () => {
-    setSearchuser([]);
+  const handleSearchBack = () => {
+    setSearchUser([]);
     setSearchInput("");
   };
 
-  const handelLogOut = async () => {
-    const confirmlogout = window.prompt("type 'UserName' To LOGOUT");
-    if (confirmlogout !== authUser.username) return toast.info("Logout Cancelled");
+  const handleLogout = async () => {
+    const confirm = window.prompt("Type your username to LOGOUT");
+
+    if (confirm !== authUser.username) return toast.info("Logout cancelled");
 
     try {
       await axios.post("/api/auth/logout");
-      toast.info("Logged Out Successfully");
       localStorage.removeItem("chatapp");
       setAuthUser(null);
       navigate("/login");
@@ -292,67 +298,63 @@ const Sidebar = ({ onSelectUser }) => {
 
   return (
     <div className="h-full w-[320px] bg-[#1a1a1d]/70 backdrop-blur-xl 
-                    border-r border-white/10 shadow-xl flex flex-col p-4">
+      border-r border-white/10 shadow-xl flex flex-col p-4">
 
-      {/* HEADER SEARCH SECTION */}
+      {/* HEADER: SEARCH BAR */}
       <div className="flex items-center gap-4">
         <form
-          onSubmit={handelSearchSubmit}
+          onSubmit={handleSearchSubmit}
           className="flex flex-grow items-center bg-white/10 
-                     backdrop-blur-lg rounded-2xl px-4 py-2 shadow-inner"
+            backdrop-blur-lg rounded-2xl px-4 py-2 shadow-inner"
         >
           <FaSearch className="text-gray-300 mr-2" />
           <input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             type="text"
-            className="bg-transparent text-white w-full outline-none 
-                       placeholder:text-gray-400"
             placeholder="Search user..."
+            className="bg-transparent text-white w-full outline-none placeholder:text-gray-400"
           />
         </form>
 
         <img
-          onClick={() => navigate(`/profile/${authUser?._id}`)}
+          onClick={() => navigate(`/profile/${authUser._id}`)}
           src={authUser?.profilepic}
-          className="h-12 w-12 rounded-full object-cover shadow-lg
-                     hover:scale-110 cursor-pointer transition-all"
+          className="h-12 w-12 rounded-full object-cover shadow-lg hover:scale-110 cursor-pointer transition-all"
         />
       </div>
 
       <div className="mt-4 border-b border-white/10"></div>
 
-      {/* SEARCH RESULT MODE */}
-      {searchUser?.length > 0 ? (
+      {/* SEARCH RESULTS */}
+      {searchUser.length > 0 ? (
         <>
           <div className="mt-3 flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-700">
             {searchUser.map((user) => (
               <div
                 key={user._id}
-                onClick={() => handelUserClick(user)}
+                onClick={() => handleUserClick(user)}
                 className={`flex items-center gap-4 p-3 rounded-xl 
-                            transition-all bg-white/5 hover:bg-white/10 cursor-pointer
-                            ${selectedUserId === user?._id ? "bg-purple-600/40" : ""}`}
+                  bg-white/5 hover:bg-white/10 cursor-pointer transition-all
+                  ${selectedUserId === user._id ? "bg-purple-600/40" : ""}`}
               >
                 <div className="relative w-12 h-12">
-                  <img
-                    src={user.profilepic}
-                    className="w-full h-full rounded-full object-cover shadow-md"
-                  />
-                  {onlineUser.includes(user._id) && (
-                    <span className="absolute bottom-0 right-0 w-3 h-3 
-                                     bg-green-500 rounded-full border border-black"></span>
+                  <img src={user.profilepic} className="w-full h-full rounded-full object-cover" />
+
+                  {/* GREEN DOT */}
+                  {onlineUser.map(normalize).includes(normalize(user._id)) && (
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border border-black"></span>
                   )}
                 </div>
+
                 <p className="text-white font-medium">{user.username}</p>
               </div>
             ))}
           </div>
 
           <button
-            onClick={handSearchback}
-            className="mt-3 flex items-center gap-2 bg-white/10 
-                       hover:bg-white/20 text-white rounded-xl px-4 py-2"
+            onClick={handleSearchBack}
+            className="mt-3 flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2"
           >
             <IoArrowBackSharp size={20} />
             Back
@@ -360,7 +362,7 @@ const Sidebar = ({ onSelectUser }) => {
         </>
       ) : (
         <>
-          {/* NORMAL CHAT USER LIST */}
+          {/* CHAT LIST */}
           <div className="mt-4 flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-700">
             {chatUser.length === 0 ? (
               <div className="text-center text-gray-300 mt-10">
@@ -371,19 +373,17 @@ const Sidebar = ({ onSelectUser }) => {
               chatUser.map((user) => (
                 <div
                   key={user._id}
-                  onClick={() => handelUserClick(user)}
+                  onClick={() => handleUserClick(user)}
                   className={`flex items-center gap-4 p-3 rounded-xl 
-                              transition-all bg-white/5 hover:bg-white/10 cursor-pointer
-                              ${selectedUserId === user?._id ? "bg-purple-600/40" : ""}`}
+                    transition-all bg-white/5 hover:bg-white/10 cursor-pointer
+                    ${selectedUserId === user._id ? "bg-purple-600/40" : ""}`}
                 >
                   <div className="relative w-12 h-12">
-                    <img
-                      src={user.profilepic}
-                      className="w-full h-full rounded-full object-cover shadow-lg"
-                    />
-                    {onlineUser.includes(user._id) && (
-                      <span className="absolute bottom-0 right-0 w-3 h-3 
-                                       bg-green-500 rounded-full border border-black"></span>
+                    <img src={user.profilepic} className="w-full h-full rounded-full object-cover" />
+
+                    {/* GREEN DOT */}
+                    {onlineUser.map(normalize).includes(normalize(user._id)) && (
+                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border border-black"></span>
                     )}
                   </div>
 
@@ -391,7 +391,7 @@ const Sidebar = ({ onSelectUser }) => {
                     <p className="text-white font-medium">{user.username}</p>
                   </div>
 
-                  {/* ✅ Show new message bubble */}
+                  {/* 🔔 NEW MESSAGE BADGE */}
                   {newMessageUsers?.receiverId === authUser._id &&
                     newMessageUsers?.senderId === user._id && (
                       <span className="bg-green-600 text-white text-sm px-2 rounded-full">
@@ -403,11 +403,10 @@ const Sidebar = ({ onSelectUser }) => {
             )}
           </div>
 
-          {/* Logout */}
+          {/* LOGOUT */}
           <button
-            onClick={handelLogOut}
-            className="flex items-center gap-3 mt-4 bg-red-500/10 
-                       hover:bg-red-500/20 text-red-300 px-4 py-2 rounded-xl"
+            onClick={handleLogout}
+            className="flex items-center gap-3 mt-4 bg-red-500/10 hover:bg-red-500/20 text-red-300 px-4 py-2 rounded-xl"
           >
             <BiLogOut size={22} />
             Logout
@@ -419,3 +418,4 @@ const Sidebar = ({ onSelectUser }) => {
 };
 
 export default Sidebar;
+

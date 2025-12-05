@@ -1,90 +1,105 @@
-import React, { useEffect, useState, useRef } from 'react';
-import userConversation from '../../Zustans/useConversation';
-import { useAuth } from '../../context/AuthContext';
+import React, { useEffect, useState, useRef } from "react";
+import userConversation from "../../Zustans/useConversation";
+import { useAuth } from "../../context/AuthContext";
 import { TiMessages } from "react-icons/ti";
-import { IoArrowBackSharp, IoSend } from 'react-icons/io5';
-import axios from 'axios';
-import { useSocketContext } from '../../context/SocketContext';
-import notify from '../../assets/sound/notification.mp3';
+import { IoArrowBackSharp, IoSend } from "react-icons/io5";
+import axios from "axios";
+import { useSocketContext } from "../../context/SocketContext";
+import notify from "../../assets/sound/notification.mp3";
 
 const MessageContainer = ({ onBackUser }) => {
   const { messages, selectedConversation, setMessage } = userConversation();
   const { socket } = useSocketContext();
   const { authUser } = useAuth();
+
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
-  const [sendData, setSnedData] = useState("");
+  const [sendData, setSendData] = useState("");
+
   const lastMessageRef = useRef();
 
-  // ✅ Socket listener for new messages
+  // 🚀 LISTEN FOR NEW MESSAGES
   useEffect(() => {
-    socket?.on("newMessage", (newMessage) => {
-      const sound = new Audio(notify);
-      sound.play();
-      setMessage([...messages, newMessage]);
-    });
+    if (!socket) return;
 
-    return () => socket?.off("newMessage");
-  }, [socket, setMessage, messages]);
+    const handleNewMessage = (newMessage) => {
+      if (newMessage.senderId !== authUser._id) {
+        const sound = new Audio(notify);
+        sound.play();
+      }
 
-  // ✅ Auto scroll to latest message
+      // 💡 FIXED — ALWAYS USE FUNCTIONAL UPDATE
+      setMessage((prev) => [...prev, newMessage]);
+    };
+
+    socket.on("newMessage", handleNewMessage);
+
+    return () => socket.off("newMessage", handleNewMessage);
+  }, [socket, authUser?._id, setMessage]);
+
+  // 🚀 AUTO SCROLL TO LAST MESSAGE
   useEffect(() => {
     setTimeout(() => {
       lastMessageRef?.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
   }, [messages]);
 
-  // ✅ Fetch messages when conversation changes
+  // 🚀 FETCH MESSAGES WHEN CHAT OPENS
   useEffect(() => {
-    const getMessages = async () => {
+    const fetchMessages = async () => {
+      if (!selectedConversation?._id) return;
+
       setLoading(true);
+
       try {
-        const get = await axios.get(`/api/message/${selectedConversation?._id}`);
-        const data = get.data;
-        setLoading(false);
-        setMessage(data);
-      } catch (error) {
-        setLoading(false);
-        console.log(error);
+        const res = await axios.get(`/api/message/${selectedConversation._id}`);
+        setMessage(res.data);
+      } catch (err) {
+        console.log(err);
       }
+
+      setLoading(false);
     };
 
-    if (selectedConversation?._id) getMessages();
+    fetchMessages();
   }, [selectedConversation?._id, setMessage]);
 
-  // ✅ Send message (DB + socket emit)
-  const handelSubmit = async (e) => {
+  // 🚀 SEND MESSAGE
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
+
     try {
-      const res = await axios.post(`/api/message/send/${selectedConversation?._id}`, {
-        messages: sendData
+      const res = await axios.post(`/api/message/send/${selectedConversation._id}`, {
+        messages: sendData,
       });
 
-      const data = res.data;
+      const sentMessage = res.data;
 
-      // 🔥 Emit to socket for real-time delivery
+      // 📡 SEND THROUGH SOCKET
       socket?.emit("sendMessage", {
         senderId: authUser._id,
         receiverId: selectedConversation._id,
         message: sendData,
       });
 
-      setSending(false);
-      setSnedData('');
-      setMessage([...messages, data]);
-    } catch (error) {
-      setSending(false);
-      console.log(error);
+      // 💡 FIXED — ALWAYS USE FUNCTIONAL UPDATE
+      setMessage((prev) => [...prev, sentMessage]);
+
+      setSendData("");
+    } catch (err) {
+      console.log(err);
     }
+
+    setSending(false);
   };
 
   return (
     <div className="md:min-w-[500px] h-[99%] flex flex-col py-2 
-        bg-gradient-to-br from-[#0b141a] via-[#0a1116] to-black 
-        rounded-xl shadow-lg">
+      bg-gradient-to-br from-[#0b141a] via-[#0a1116] to-black 
+      rounded-xl shadow-lg">
 
-      {/* No chat selected */}
+      {/* NO CHAT SELECTED */}
       {selectedConversation === null ? (
         <div className="flex items-center justify-center w-full h-full">
           <div className="px-4 text-center text-2xl text-white font-semibold flex flex-col items-center gap-4">
@@ -95,9 +110,9 @@ const MessageContainer = ({ onBackUser }) => {
         </div>
       ) : (
         <>
-          {/* Header */}
+          {/* HEADER */}
           <div className="flex justify-between items-center 
-              bg-[#202c33] px-4 py-2 rounded-lg shadow-md">
+            bg-[#202c33] px-4 py-2 rounded-lg shadow-md">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => onBackUser(true)}
@@ -116,7 +131,7 @@ const MessageContainer = ({ onBackUser }) => {
             </div>
           </div>
 
-          {/* Messages */}
+          {/* CHAT MESSAGES */}
           <div className="flex-1 overflow-auto px-3 py-3 space-y-3 bg-cover bg-center">
             {loading && (
               <div className="flex items-center justify-center h-full">
@@ -129,30 +144,29 @@ const MessageContainer = ({ onBackUser }) => {
             )}
 
             {!loading &&
-              messages?.map((msg) => {
+              messages?.map((msg, index) => {
                 const isMe = msg.senderId === authUser._id;
+                const isLast = index === messages.length - 1;
 
                 return (
                   <div
-                    key={msg?._id}
-                    ref={lastMessageRef}
+                    key={msg?._id || index}
+                    ref={isLast ? lastMessageRef : null}
                     className={`w-full flex ${isMe ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`
-                      max-w-[70%] px-3 py-2 rounded-xl shadow 
-                      text-sm relative 
-                      ${isMe
-                        ? "bg-[#005c4b] text-white rounded-br-none"
-                        : "bg-[#202c33] text-gray-200 rounded-bl-none"
-                      }`}
+                      className={`max-w-[70%] px-3 py-2 rounded-xl shadow text-sm
+                        ${isMe
+                          ? "bg-[#005c4b] text-white rounded-br-none"
+                          : "bg-[#202c33] text-gray-200 rounded-bl-none"
+                        }`}
                     >
                       {msg.message}
 
                       <div className="text-[10px] text-gray-300 mt-1 text-right">
-                        {new Date(msg?.createdAt).toLocaleTimeString('en-IN', {
-                          hour: '2-digit',
-                          minute: '2-digit'
+                        {new Date(msg?.createdAt).toLocaleTimeString("en-IN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })}
                       </div>
                     </div>
@@ -161,12 +175,12 @@ const MessageContainer = ({ onBackUser }) => {
               })}
           </div>
 
-          {/* Input Box */}
-          <form onSubmit={handelSubmit} className="px-4 py-2">
+          {/* INPUT BOX */}
+          <form onSubmit={handleSubmit} className="px-4 py-2">
             <div className="w-full flex items-center bg-[#202c33] rounded-full px-4 py-2 shadow-lg">
               <input
                 value={sendData}
-                onChange={(e) => setSnedData(e.target.value)}
+                onChange={(e) => setSendData(e.target.value)}
                 required
                 type="text"
                 placeholder="Message"
