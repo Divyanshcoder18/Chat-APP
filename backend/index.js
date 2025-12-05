@@ -24,7 +24,8 @@ app.use("/api/message", messageRouter);
 app.use("/api/user", userRouter);
 
 // FRONTEND STATIC FILES
-path.join(__dirname, "backend", "frontend", "dist")
+app.use(express.static(path.join(__dirname, "frontend", "dist")));
+
 
 
 app.get(/.*/, (req, res) => {
