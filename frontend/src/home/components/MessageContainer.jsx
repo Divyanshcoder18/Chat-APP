@@ -16,7 +16,7 @@ const MessageContainer = ({ onBackUser }) => {
   const [sendData, setSnedData] = useState("");
   const lastMessageRef = useRef();
 
-  // socket listener
+  // ✅ Socket listener for new messages
   useEffect(() => {
     socket?.on("newMessage", (newMessage) => {
       const sound = new Audio(notify);
@@ -27,14 +27,14 @@ const MessageContainer = ({ onBackUser }) => {
     return () => socket?.off("newMessage");
   }, [socket, setMessage, messages]);
 
-  // auto scroll
+  // ✅ Auto scroll to latest message
   useEffect(() => {
     setTimeout(() => {
       lastMessageRef?.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
   }, [messages]);
 
-  // fetch messages
+  // ✅ Fetch messages when conversation changes
   useEffect(() => {
     const getMessages = async () => {
       setLoading(true);
@@ -52,6 +52,7 @@ const MessageContainer = ({ onBackUser }) => {
     if (selectedConversation?._id) getMessages();
   }, [selectedConversation?._id, setMessage]);
 
+  // ✅ Send message (DB + socket emit)
   const handelSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
@@ -61,6 +62,14 @@ const MessageContainer = ({ onBackUser }) => {
       });
 
       const data = res.data;
+
+      // 🔥 Emit to socket for real-time delivery
+      socket?.emit("sendMessage", {
+        senderId: authUser._id,
+        receiverId: selectedConversation._id,
+        message: sendData,
+      });
+
       setSending(false);
       setSnedData('');
       setMessage([...messages, data]);
@@ -90,7 +99,6 @@ const MessageContainer = ({ onBackUser }) => {
           <div className="flex justify-between items-center 
               bg-[#202c33] px-4 py-2 rounded-lg shadow-md">
             <div className="flex items-center gap-3">
-              {/* 🔙 Back Button (always visible now) */}
               <button
                 onClick={() => onBackUser(true)}
                 className="bg-white rounded-full p-2 shadow hover:scale-105 transition-transform"
@@ -109,12 +117,7 @@ const MessageContainer = ({ onBackUser }) => {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-auto px-3 py-3 space-y-3 bg-cover bg-center"
-            style={{
-              backgroundImage:
-                "url()"
-            }}
-          >
+          <div className="flex-1 overflow-auto px-3 py-3 space-y-3 bg-cover bg-center">
             {loading && (
               <div className="flex items-center justify-center h-full">
                 <div className="loading loading-spinner text-indigo-400"></div>
@@ -146,7 +149,6 @@ const MessageContainer = ({ onBackUser }) => {
                     >
                       {msg.message}
 
-                      {/* Timestamp */}
                       <div className="text-[10px] text-gray-300 mt-1 text-right">
                         {new Date(msg?.createdAt).toLocaleTimeString('en-IN', {
                           hour: '2-digit',

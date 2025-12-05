@@ -198,7 +198,6 @@ const Sidebar = ({ onSelectUser }) => {
 
 export default Sidebar;
 */
-
 import React, { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import axios from "axios";
@@ -211,7 +210,6 @@ import userConversation from "../../Zustans/useConversation";
 import { useSocketContext } from "../../context/SocketContext";
 
 const Sidebar = ({ onSelectUser }) => {
-
   const navigate = useNavigate();
   const { authUser, setAuthUser } = useAuth();
 
@@ -222,19 +220,16 @@ const Sidebar = ({ onSelectUser }) => {
   const [selectedUserId, setSetSelectedUserId] = useState(null);
   const [newMessageUsers, setNewMessageUsers] = useState("");
 
-  const { messages, setMessage, selectedConversation, setSelectedConversation } =
-    userConversation();
+  const { setSelectedConversation } = userConversation();
   const { onlineUser, socket } = useSocketContext();
 
-
-  const nowOnline = chatUser.map((user) => user._id);
-  const isOnline = nowOnline.map((userId) => onlineUser.includes(userId));
-
+  // ✅ Listen for new messages
   useEffect(() => {
     socket?.on("newMessage", (newMessage) => setNewMessageUsers(newMessage));
     return () => socket?.off("newMessage");
-  }, [socket, messages]);
+  }, [socket]);
 
+  // ✅ Fetch chat users
   useEffect(() => {
     const chatUserHandler = async () => {
       setLoading(true);
@@ -262,7 +257,6 @@ const Sidebar = ({ onSelectUser }) => {
 
       if (data.length === 0) toast.info("User Not Found");
       else setSearchuser(data);
-
     } catch (error) {
       console.log(error);
     }
@@ -296,22 +290,18 @@ const Sidebar = ({ onSelectUser }) => {
     }
   };
 
-
   return (
     <div className="h-full w-[320px] bg-[#1a1a1d]/70 backdrop-blur-xl 
                     border-r border-white/10 shadow-xl flex flex-col p-4">
 
       {/* HEADER SEARCH SECTION */}
       <div className="flex items-center gap-4">
-        
-        {/* Search Bar */}
         <form
           onSubmit={handelSearchSubmit}
           className="flex flex-grow items-center bg-white/10 
                      backdrop-blur-lg rounded-2xl px-4 py-2 shadow-inner"
         >
           <FaSearch className="text-gray-300 mr-2" />
-
           <input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
@@ -322,7 +312,6 @@ const Sidebar = ({ onSelectUser }) => {
           />
         </form>
 
-        {/* Profile Mini Avatar */}
         <img
           onClick={() => navigate(`/profile/${authUser?._id}`)}
           src={authUser?.profilepic}
@@ -333,14 +322,11 @@ const Sidebar = ({ onSelectUser }) => {
 
       <div className="mt-4 border-b border-white/10"></div>
 
-      {/* ------------------------------ */}
       {/* SEARCH RESULT MODE */}
-      {/* ------------------------------ */}
       {searchUser?.length > 0 ? (
         <>
           <div className="mt-3 flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-700">
-
-            {searchUser.map((user, index) => (
+            {searchUser.map((user) => (
               <div
                 key={user._id}
                 onClick={() => handelUserClick(user)}
@@ -348,19 +334,16 @@ const Sidebar = ({ onSelectUser }) => {
                             transition-all bg-white/5 hover:bg-white/10 cursor-pointer
                             ${selectedUserId === user?._id ? "bg-purple-600/40" : ""}`}
               >
-                
-                {/* Avatar + Online Ring */}
-                <div className={`relative w-12 h-12`}>
+                <div className="relative w-12 h-12">
                   <img
                     src={user.profilepic}
                     className="w-full h-full rounded-full object-cover shadow-md"
                   />
-                  {isOnline[index] && (
+                  {onlineUser.includes(user._id) && (
                     <span className="absolute bottom-0 right-0 w-3 h-3 
                                      bg-green-500 rounded-full border border-black"></span>
                   )}
                 </div>
-
                 <p className="text-white font-medium">{user.username}</p>
               </div>
             ))}
@@ -377,9 +360,7 @@ const Sidebar = ({ onSelectUser }) => {
         </>
       ) : (
         <>
-          {/* ------------------------------ */}
           {/* NORMAL CHAT USER LIST */}
-          {/* ------------------------------ */}
           <div className="mt-4 flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-700">
             {chatUser.length === 0 ? (
               <div className="text-center text-gray-300 mt-10">
@@ -387,7 +368,7 @@ const Sidebar = ({ onSelectUser }) => {
                 <p>Search a username to start chatting.</p>
               </div>
             ) : (
-              chatUser.map((user, index) => (
+              chatUser.map((user) => (
                 <div
                   key={user._id}
                   onClick={() => handelUserClick(user)}
@@ -395,14 +376,12 @@ const Sidebar = ({ onSelectUser }) => {
                               transition-all bg-white/5 hover:bg-white/10 cursor-pointer
                               ${selectedUserId === user?._id ? "bg-purple-600/40" : ""}`}
                 >
-                  
-                  {/* Avatar with online indicator */}
                   <div className="relative w-12 h-12">
                     <img
                       src={user.profilepic}
                       className="w-full h-full rounded-full object-cover shadow-lg"
                     />
-                    {isOnline[index] && (
+                    {onlineUser.includes(user._id) && (
                       <span className="absolute bottom-0 right-0 w-3 h-3 
                                        bg-green-500 rounded-full border border-black"></span>
                     )}
@@ -412,9 +391,9 @@ const Sidebar = ({ onSelectUser }) => {
                     <p className="text-white font-medium">{user.username}</p>
                   </div>
 
-                  {/* New message bubble */}
-                  {newMessageUsers.reciverId === authUser._id &&
-                    newMessageUsers.senderId === user._id && (
+                  {/* ✅ Show new message bubble */}
+                  {newMessageUsers?.receiverId === authUser._id &&
+                    newMessageUsers?.senderId === user._id && (
                       <span className="bg-green-600 text-white text-sm px-2 rounded-full">
                         +1
                       </span>
