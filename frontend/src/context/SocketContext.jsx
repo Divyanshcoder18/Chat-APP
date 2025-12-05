@@ -66,9 +66,9 @@ export const SocketContextProvider = ({ children }) => {
   useEffect(() => {
     if (authUser) {
       // ✅ don't shadow state variable
-      const newSocket = io("https://slrtech-chatapp.onrender.com", {
-        query: { userId: authUser?._id },
-      });
+const newSocket = io("https://chat-app-5-rizg.onrender.com", {
+  query: { userId: authUser?._id },
+});
 
       newSocket.on("getOnlineUsers", (users) => {
         setOnlineUser(users);

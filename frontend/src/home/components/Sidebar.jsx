@@ -381,10 +381,10 @@ const Sidebar = ({ onSelectUser }) => {
                   <div className="relative w-12 h-12">
                     <img src={user.profilepic} className="w-full h-full rounded-full object-cover" />
 
-                    {/* GREEN DOT */}
-                    {onlineUser.map(normalize).includes(normalize(user._id)) && (
-                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border border-black"></span>
-                    )}
+                   {onlineUser.some(id => id.toString() === user._id.toString()) && (
+  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border border-black"></span>
+)}
+
                   </div>
 
                   <div className="flex flex-col flex-1">

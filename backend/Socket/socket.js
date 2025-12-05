@@ -41,13 +41,15 @@ const app = express();
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: [
-      'http://localhost:5173', 
-      'https://slrtech-chatapp.onrender.com'
-    ],
-    methods: ['GET', 'POST'],
-  },
+ cors: {
+  origin: [
+    "http://localhost:5173",
+    "https://chat-app-5-rizg.onrender.com"   // ✔ your render app URL
+  ],
+  methods: ["GET", "POST"],
+  credentials: true,
+},
+
 });
 
 const userSocketmap = {}; // { userId: socketId }
