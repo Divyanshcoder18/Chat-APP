@@ -14,6 +14,12 @@ dotenv.config();
 
 const __dirname = path.resolve();
 
+app.use(cors({
+  origin: ["http://localhost:5173", "https://slrtech-chatapp.onrender.com"],
+  credentials: true
+}));
+
+
 // Middlewares
 app.use(express.json());
 app.use(cookieParser());
@@ -26,16 +32,10 @@ app.use("/api/user", userRouter);
 // FRONTEND STATIC FILES
 app.use(express.static(path.join(__dirname, "frontend", "dist")));
 
-
-
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
 });
 
-app.use(cors({
-  origin: ["http://localhost:5173", "https://slrtech-chatapp.onrender.com"],
-  credentials: true
-}));
 
 
 const PORT = process.env.PORT || 3000;
