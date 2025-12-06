@@ -97,16 +97,8 @@ const newSocket = io("https://chat-app-5-rizg.onrender.com", {
 };*/
 
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import io from 'socket.io-client';
-import { useAuth } from './AuthContext';
 
-const SocketContext = createContext();
-
-export const useSocketContext=()=>{
-    return useContext(SocketContext);
-}
-
+/*
 export const SocketContextProvider=({children})=>{
     const [socket , setSocket]= useState(null);
     const [onlineUser,setOnlineUser]=useState([]);
@@ -142,3 +134,78 @@ export const SocketContextProvider=({children})=>{
     </SocketContext.Provider>
     )
 }
+
+*/
+
+
+import { createContext, useContext, useEffect, useState } from 'react';
+import io from 'socket.io-client';
+import { useAuth } from './AuthContext';
+
+const SocketContext = createContext();
+
+export const useSocketContext=()=>{
+    return useContext(SocketContext);
+}
+
+export const SocketContextProvider = ({ children }) => {
+    const [socket, setSocket] = useState(null);
+    const [onlineUser, setOnlineUser] = useState([]);
+    const { authUser } = useAuth();
+    
+    useEffect(() => {
+        if (authUser) {
+            console.log('Connecting socket for user:', authUser._id);
+            
+            const newSocket = io("https://chat-app-1-6v4y.onrender.com", {
+                transports: ["websocket"],
+                query: {
+                    userId: authUser._id,
+                },
+                withCredentials: true,
+            });
+
+            // Debug connection events
+            newSocket.on("connect", () => {
+                console.log('Socket connected:', newSocket.id);
+            });
+
+            newSocket.on("disconnect", () => {
+                console.log('Socket disconnected');
+            });
+
+            newSocket.on("connect_error", (error) => {
+                console.error('Socket connection error:', error);
+            });
+
+ newSocket.on("getOnlineUsers", (users) => {
+                console.log('Online users updated:', users);
+                setOnlineUser(users);
+            });
+
+            // Debug message events
+            newSocket.on("newMessage", (message) => {
+                console.log('Received newMessage event:', message);
+            });
+
+            setSocket(newSocket);
+
+            return () => {
+                console.log('Disconnecting socket');
+                newSocket.disconnect();
+            };
+        } else {
+            if (socket) {
+                socket.disconnect();
+                setSocket(null);
+            }
+        }
+    }, [authUser]);
+
+    return (
+        <SocketContext.Provider value={{ socket, onlineUser }}>
+            {children}
+        </SocketContext.Provider>
+    );
+}
+

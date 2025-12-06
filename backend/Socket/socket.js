@@ -49,11 +49,9 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
     credentials: true,
   },
-  transports: ["websocket", "polling"],
 });
 
-// USER SOCKET MAP
-const userSocketMap = {}; // { userId: socketId }
+const userSocketMap = {}; // userId -> socket.id
 
 export const getReciverSocketId = (receiverId) => {
   return userSocketMap[receiverId];
@@ -67,6 +65,18 @@ io.on("connection", (socket) => {
   }
 
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+  // ✅ REAL-TIME MESSAGE HANDLER
+  socket.on("sendMessage", (data) => {
+    console.log("Received sendMessage:", data);
+
+    const receiverSocketId = userSocketMap[data.receiverId];
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", data);
+      console.log("Forwarded to receiver:", receiverSocketId);
+    }
+  });
 
   socket.on("disconnect", () => {
     delete userSocketMap[userId];
