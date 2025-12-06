@@ -111,25 +111,31 @@ export const SocketContextProvider=({children})=>{
     const [socket , setSocket]= useState(null);
     const [onlineUser,setOnlineUser]=useState([]);
     const {authUser} = useAuth();
-    useEffect(()=>{
-        if(authUser){
-            const socket = io("https://chat-app-1-6v4y.onrender.com",{
-                query:{
-                    userId:authUser?._id,
-                }
-            })
-            socket.on("getOnlineUsers",(users)=>{
-                setOnlineUser(users)
-            });
-            setSocket(socket);
-            return()=>socket.close();
-        }else{
-            if(socket){
-                socket.close();
-                setSocket(null); 
-            }
-        }
-    },[authUser]);
+ useEffect(() => {
+  if (authUser) {
+    const newSocket = io("https://chat-app-1-6v4y.onrender.com", {
+      transports: ["websocket"],
+      query: {
+        userId: authUser._id,
+      },
+      withCredentials: true,
+    });
+
+    newSocket.on("getOnlineUsers", (users) => {
+      setOnlineUser(users);
+    });
+
+    setSocket(newSocket);
+
+    return () => newSocket.disconnect();
+  } else {
+    if (socket) {
+      socket.disconnect();
+      setSocket(null);
+    }
+  }
+}, [authUser]);
+
     return(
     <SocketContext.Provider value={{socket , onlineUser}}>
         {children}
