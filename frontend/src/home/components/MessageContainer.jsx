@@ -1,221 +1,3 @@
-import React, { useEffect, useState, useRef } from "react";
-import userConversation from "../../Zustans/useConversation";
-import { useAuth } from "../../context/AuthContext";
-import { TiMessages } from "react-icons/ti";
-import { IoArrowBackSharp, IoSend } from "react-icons/io5";
-import axios from "axios";
-import { useSocketContext } from "../../context/SocketContext";
-import notify from "../../assets/sound/notification.mp3";
-
-const MessageContainer = ({ onBackUser }) => {
-  const { messages, selectedConversation, setMessage } = userConversation();
-  const { socket } = useSocketContext();
-  const { authUser } = useAuth();
-
-  const [loading, setLoading] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [sendData, setSendData] = useState("");
-
-  const lastMessageRef = useRef();
-
-  // 🚀 LISTEN FOR NEW MESSAGES
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleNewMessage = (newMessage) => {
-      if (newMessage.senderId !== authUser._id) {
-        const sound = new Audio(notify);
-        sound.play();
-      }
-
-      // 💡 FIXED — ALWAYS USE FUNCTIONAL UPDATE
-      setMessage((prev) => [...prev, newMessage]);
-    };
-
-    socket.on("newMessage", handleNewMessage);
-
-    return () => socket.off("newMessage", handleNewMessage);
-  }, [socket, authUser?._id, setMessage]);
-
-  // 🚀 AUTO SCROLL TO LAST MESSAGE
-  useEffect(() => {
-    setTimeout(() => {
-      lastMessageRef?.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-  }, [messages]);
-
-  // 🚀 FETCH MESSAGES WHEN CHAT OPENS
-  useEffect(() => {
-    const fetchMessages = async () => {
-      if (!selectedConversation?._id) return;
-
-      setLoading(true);
-
-      try {
-        const res = await axios.get(`/api/message/${selectedConversation._id}`);
-        setMessage(res.data);
-      } catch (err) {
-        console.log(err);
-      }
-
-      setLoading(false);
-    };
-
-    fetchMessages();
-  }, [selectedConversation?._id, setMessage]);
-
-  // 🚀 SEND MESSAGE
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSending(true);
-
-    try {
-      const res = await axios.post(`/api/message/send/${selectedConversation._id}`, {
-        messages: sendData,
-      });
-
-      const sentMessage = res.data;
-
-      // 📡 SEND THROUGH SOCKET
-      socket?.emit("sendMessage", {
-        senderId: authUser._id,
-        receiverId: selectedConversation._id,
-        message: sendData,
-      });
-
-      // 💡 FIXED — ALWAYS USE FUNCTIONAL UPDATE
-      setMessage((prev) => [...prev, sentMessage]);
-
-      setSendData("");
-    } catch (err) {
-      console.log(err);
-    }
-
-    setSending(false);
-  };
-
-  return (
-    <div className="md:min-w-[500px] h-[99%] flex flex-col py-2 
-      bg-gradient-to-br from-[#0b141a] via-[#0a1116] to-black 
-      rounded-xl shadow-lg">
-
-      {/* NO CHAT SELECTED */}
-      {selectedConversation === null ? (
-        <div className="flex items-center justify-center w-full h-full">
-          <div className="px-4 text-center text-2xl text-white font-semibold flex flex-col items-center gap-4">
-            <p className="text-2xl">Welcome 👋 {authUser.username} 😉</p>
-            <p className="text-lg text-gray-400">Select a chat to start messaging</p>
-            <TiMessages className="text-6xl text-indigo-400" />
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* HEADER */}
-          <div className="flex justify-between items-center 
-            bg-[#202c33] px-4 py-2 rounded-lg shadow-md">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => onBackUser(true)}
-                className="bg-white rounded-full p-2 shadow hover:scale-105 transition-transform"
-              >
-                <IoArrowBackSharp size={22} className="text-indigo-600" />
-              </button>
-
-              <img
-                className="rounded-full w-10 h-10 border-2 border-white shadow"
-                src={selectedConversation?.profilepic}
-              />
-              <span className="text-white font-bold text-lg">
-                {selectedConversation?.username}
-              </span>
-            </div>
-          </div>
-
-          {/* CHAT MESSAGES */}
-          <div className="flex-1 overflow-auto px-3 py-3 space-y-3 bg-cover bg-center">
-            {loading && (
-              <div className="flex items-center justify-center h-full">
-                <div className="loading loading-spinner text-indigo-400"></div>
-              </div>
-            )}
-
-            {!loading && messages?.length === 0 && (
-              <p className="text-center text-gray-300">Start the conversation...</p>
-            )}
-
-            {!loading &&
-              messages?.map((msg, index) => {
-                const isMe = msg.senderId === authUser._id;
-                const isLast = index === messages.length - 1;
-
-                return (
-                  <div
-                    key={msg?._id || index}
-                    ref={isLast ? lastMessageRef : null}
-                    className={`w-full flex ${isMe ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`max-w-[70%] px-3 py-2 rounded-xl shadow text-sm
-                        ${isMe
-                          ? "bg-[#005c4b] text-white rounded-br-none"
-                          : "bg-[#202c33] text-gray-200 rounded-bl-none"
-                        }`}
-                    >
-                      {msg.message}
-
-                      <div className="text-[10px] text-gray-300 mt-1 text-right">
-                        {new Date(msg?.createdAt).toLocaleTimeString("en-IN", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-
-          {/* INPUT BOX */}
-          <form onSubmit={handleSubmit} className="px-4 py-2">
-            <div className="w-full flex items-center bg-[#202c33] rounded-full px-4 py-2 shadow-lg">
-              <input
-                value={sendData}
-                onChange={(e) => setSendData(e.target.value)}
-                required
-                type="text"
-                placeholder="Message"
-                className="w-full bg-transparent text-white outline-none"
-              />
-
-              <button type="submit">
-                {sending ? (
-                  <div className="loading loading-spinner text-indigo-400"></div>
-                ) : (
-                  <IoSend size={24} className="text-green-500 hover:text-green-400 cursor-pointer" />
-                )}
-              </button>
-            </div>
-          </form>
-        </>
-      )}
-    </div>
-  );
-};
-
-export default MessageContainer;
-
-
-
-/*
-Zustand is a state management library for React. It gives you a global store that any component can access without prop drilling. In your app:
-
-Sidebar sets the selectedConversation when you click on a user.
-
-MessageContainer reads selectedConversation to know which chat to show.
-
-Both components share the same state via Zustand, without needing to pass props through parent components.
-*/
-/*
 import React, { useEffect, useState,useRef  } from 'react'
 import userConversation from '../../Zustans/useConversation';
 import { useAuth } from '../../context/AuthContext';
@@ -376,4 +158,223 @@ const MessageContainer = ({ onBackUser }) => {
 }
 
 export default MessageContainer
+
+
+
+/*import React, { useEffect, useState, useRef } from "react";
+import userConversation from "../../Zustans/useConversation";
+import { useAuth } from "../../context/AuthContext";
+import { TiMessages } from "react-icons/ti";
+import { IoArrowBackSharp, IoSend } from "react-icons/io5";
+import axios from "axios";
+import { useSocketContext } from "../../context/SocketContext";
+import notify from "../../assets/sound/notification.mp3";
+
+const MessageContainer = ({ onBackUser }) => {
+  const { messages, selectedConversation, setMessage } = userConversation();
+  const { socket } = useSocketContext();
+  const { authUser } = useAuth();
+
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendData, setSendData] = useState("");
+
+  const lastMessageRef = useRef();
+
+  // 🚀 LISTEN FOR NEW MESSAGES
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (newMessage) => {
+      if (newMessage.senderId !== authUser._id) {
+        const sound = new Audio(notify);
+        sound.play();
+      }
+
+      // 💡 FIXED — ALWAYS USE FUNCTIONAL UPDATE
+      setMessage((prev) => [...prev, newMessage]);
+    };
+
+    socket.on("newMessage", handleNewMessage);
+
+    return () => socket.off("newMessage", handleNewMessage);
+  }, [socket, authUser?._id, setMessage]);
+
+  // 🚀 AUTO SCROLL TO LAST MESSAGE
+  useEffect(() => {
+    setTimeout(() => {
+      lastMessageRef?.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  }, [messages]);
+
+  // 🚀 FETCH MESSAGES WHEN CHAT OPENS
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!selectedConversation?._id) return;
+
+      setLoading(true);
+
+      try {
+        const res = await axios.get(`/api/message/${selectedConversation._id}`);
+        setMessage(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+
+      setLoading(false);
+    };
+
+    fetchMessages();
+  }, [selectedConversation?._id, setMessage]);
+
+  // 🚀 SEND MESSAGE
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSending(true);
+
+    try {
+      const res = await axios.post(`/api/message/send/${selectedConversation._id}`, {
+        messages: sendData,
+      });
+
+      const sentMessage = res.data;
+
+      // 📡 SEND THROUGH SOCKET
+      socket?.emit("sendMessage", {
+        senderId: authUser._id,
+        receiverId: selectedConversation._id,
+        message: sendData,
+      });
+
+      // 💡 FIXED — ALWAYS USE FUNCTIONAL UPDATE
+      setMessage((prev) => [...prev, sentMessage]);
+
+      setSendData("");
+    } catch (err) {
+      console.log(err);
+    }
+
+    setSending(false);
+  };
+
+  return (
+    <div className="md:min-w-[500px] h-[99%] flex flex-col py-2 
+      bg-gradient-to-br from-[#0b141a] via-[#0a1116] to-black 
+      rounded-xl shadow-lg">
+
+      
+      {selectedConversation === null ? (
+        <div className="flex items-center justify-center w-full h-full">
+          <div className="px-4 text-center text-2xl text-white font-semibold flex flex-col items-center gap-4">
+            <p className="text-2xl">Welcome 👋 {authUser.username} 😉</p>
+            <p className="text-lg text-gray-400">Select a chat to start messaging</p>
+            <TiMessages className="text-6xl text-indigo-400" />
+          </div>
+        </div>
+      ) : (
+        <>
+        
+          <div className="flex justify-between items-center 
+            bg-[#202c33] px-4 py-2 rounded-lg shadow-md">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => onBackUser(true)}
+                className="bg-white rounded-full p-2 shadow hover:scale-105 transition-transform"
+              >
+                <IoArrowBackSharp size={22} className="text-indigo-600" />
+              </button>
+
+              <img
+                className="rounded-full w-10 h-10 border-2 border-white shadow"
+                src={selectedConversation?.profilepic}
+              />
+              <span className="text-white font-bold text-lg">
+                {selectedConversation?.username}
+              </span>
+            </div>
+          </div>
+
+         
+          <div className="flex-1 overflow-auto px-3 py-3 space-y-3 bg-cover bg-center">
+            {loading && (
+              <div className="flex items-center justify-center h-full">
+                <div className="loading loading-spinner text-indigo-400"></div>
+              </div>
+            )}
+
+            {!loading && messages?.length === 0 && (
+              <p className="text-center text-gray-300">Start the conversation...</p>
+            )}
+
+            {!loading &&
+              messages?.map((msg, index) => {
+                const isMe = msg.senderId === authUser._id;
+                const isLast = index === messages.length - 1;
+
+                return (
+                  <div
+                    key={msg?._id || index}
+                    ref={isLast ? lastMessageRef : null}
+                    className={`w-full flex ${isMe ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[70%] px-3 py-2 rounded-xl shadow text-sm
+                        ${isMe
+                          ? "bg-[#005c4b] text-white rounded-br-none"
+                          : "bg-[#202c33] text-gray-200 rounded-bl-none"
+                        }`}
+                    >
+                      {msg.message}
+
+                      <div className="text-[10px] text-gray-300 mt-1 text-right">
+                        {new Date(msg?.createdAt).toLocaleTimeString("en-IN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+
+       
+          <form onSubmit={handleSubmit} className="px-4 py-2">
+            <div className="w-full flex items-center bg-[#202c33] rounded-full px-4 py-2 shadow-lg">
+              <input
+                value={sendData}
+                onChange={(e) => setSendData(e.target.value)}
+                required
+                type="text"
+                placeholder="Message"
+                className="w-full bg-transparent text-white outline-none"
+              />
+
+              <button type="submit">
+                {sending ? (
+                  <div className="loading loading-spinner text-indigo-400"></div>
+                ) : (
+                  <IoSend size={24} className="text-green-500 hover:text-green-400 cursor-pointer" />
+                )}
+              </button>
+            </div>
+          </form>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default MessageContainer;
+*/
+
+
+/*
+Zustand is a state management library for React. It gives you a global store that any component can access without prop drilling. In your app:
+
+Sidebar sets the selectedConversation when you click on a user.
+
+MessageContainer reads selectedConversation to know which chat to show.
+
+Both components share the same state via Zustand, without needing to pass props through parent components.
 */

@@ -33,7 +33,7 @@ io.on('connection',(socket)=>{
 export {app , io , server}
 */
 
-import { Server } from 'socket.io';
+import {Server} from 'socket.io';
 import http from 'http';
 import express from 'express';
 
@@ -43,7 +43,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
  cors: {
   origin: [
-    "http://localhost:5173",
+    
     "https://chat-app-5-rizg.onrender.com"   // ✔ your render app URL
   ],
   methods: ["GET", "POST"],
@@ -52,33 +52,21 @@ const io = new Server(server, {
 
 });
 
-const userSocketmap = {}; // { userId: socketId }
-
-export const getReciverSocketId = (receiverId) => {
-  return userSocketmap[receiverId];
+export const getReciverSocketId = (receverId)=>{
+    return userSocketmap[receverId];
 };
 
-io.on('connection', (socket) => {
-  const userId = socket.handshake.query.userId;
+const userSocketmap={}; //{userId,socketId}
+io.on('connection',(socket)=>{
+    const userId = socket.handshake.query.userId;
 
-  if (userId) {
-    userSocketmap[userId] = socket.id;
-    io.emit('getOnlineUsers', Object.keys(userSocketmap));
-  }
+    if(userId !== "undefine") userSocketmap[userId] = socket.id;
+    io.emit("getOnlineUsers",Object.keys(userSocketmap))
 
-  // ✅ Real-time messaging
-  socket.on("sendMessage", ({ senderId, receiverId, message }) => {
-    const receiverSocketId = userSocketmap[receiverId];
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", { senderId, receiverId, message });
-    }
-  });
-
-  socket.on('disconnect', () => {
-    delete userSocketmap[userId];
-    io.emit('getOnlineUsers', Object.keys(userSocketmap));
-  });
+    socket.on('disconnect',()=>{
+        delete userSocketmap[userId],
+        io.emit('getOnlineUsers',Object.keys(userSocketmap))
+    });
 });
 
-
-export { app, io, server };
+export {app , io , server}
