@@ -49,6 +49,8 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
     credentials: true,
   },
+   pingTimeout: 60000,   // prevents disconnect on Render
+  pingInterval: 25000,  // keeps socket alive
 });
 
 const userSocketMap = {}; // userId -> socket.id

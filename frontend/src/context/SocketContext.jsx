@@ -237,7 +237,8 @@ export const SocketContextProvider = ({ children }) => {
 
     
     const newSocket = io("https://chat-app-1-6v4y.onrender.com", {
-      transports: ["websocket"],
+     transports: ["websocket", "polling"] ,
+
       withCredentials: true,
       query: {
         userId: authUser._id,
