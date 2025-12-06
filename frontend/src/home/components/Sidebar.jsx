@@ -19,19 +19,27 @@ const Sidebar = ({ onSelectUser }) => {
     const [loading, setLoading] = useState(false);
     const [selectedUserId, setSetSelectedUserId] = useState(null);
     const [newMessageUsers, setNewMessageUsers] = useState('');
-    const {messages , setMessage, selectedConversation ,  setSelectedConversation} = userConversation();
-    const { onlineUser , socket} = useSocketContext();
+    const { messages, setMessage, selectedConversation, setSelectedConversation } = userConversation();
+    const { onlineUser, socket } = useSocketContext();
 
-    const nowOnline = chatUser.map((user)=>(user._id));
-    //chats function
+    const nowOnline = chatUser.map((user) => (user._id));
     const isOnline = nowOnline.map(userId => onlineUser.includes(userId));
 
-    useEffect(()=>{
-        socket?.on("newMessage",(newMessage)=>{
-            setNewMessageUsers(newMessage)
-        })
-        return ()=> socket?.off("newMessage");
-    },[socket,messages])
+    // ✅ FIXED — does NOT remove other "newMessage" listeners anymore
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleSidebarNewMessage = (newMessage) => {
+            setNewMessageUsers(newMessage);
+        };
+
+        socket.on("newMessage", handleSidebarNewMessage);
+
+        return () => {
+            socket.off("newMessage", handleSidebarNewMessage);
+        };
+
+    }, [socket]);
 
     //show user with u chatted
     useEffect(() => {
@@ -54,8 +62,7 @@ const Sidebar = ({ onSelectUser }) => {
         }
         chatUserHandler()
     }, [])
-    
-    //show user from the search result
+
     const handelSearchSubmit = async (e) => {
         e.preventDefault();
         setLoading(true)
@@ -78,7 +85,6 @@ const Sidebar = ({ onSelectUser }) => {
         }
     }
 
-    //show which user is selected
     const handelUserClick = (user) => {
         onSelectUser(user);
         setSelectedConversation(user);
@@ -86,13 +92,11 @@ const Sidebar = ({ onSelectUser }) => {
         setNewMessageUsers('')
     }
 
-    //back from search result
     const handSearchback = () => {
         setSearchuser([]);
         setSearchInput('')
     }
 
-    //logout
     const handelLogOut = async () => {
 
         const confirmlogout = window.prompt("type 'UserName' To LOGOUT");
@@ -140,7 +144,9 @@ const Sidebar = ({ onSelectUser }) => {
                     src={authUser?.profilepic}
                     className='self-center h-12 w-12 hover:scale-110 cursor-pointer' />
             </div>
+
             <div className='divider px-3'></div>
+
             {searchUser?.length > 0 ? (
                 <>
                     <div className="min-h-[70%] max-h-[80%] m overflow-y-auto scrollbar ">
@@ -154,8 +160,7 @@ const Sidebar = ({ onSelectUser }) => {
                                                 p-2 py-1 cursor-pointer
                                                 ${selectedUserId === user?._id ? 'bg-sky-500' : ''
                                             } `}>
-                                        {/*Socket is Online*/}
-                                        <div className={`avatar ${isOnline[index] ? 'online':''}`}>
+                                        <div className={`avatar ${isOnline[index] ? 'online' : ''}`}>
                                             <div className="w-12 rounded-full">
                                                 <img src={user.profilepic} alt='user.img' />
                                             </div>
@@ -200,8 +205,7 @@ const Sidebar = ({ onSelectUser }) => {
                                                 ${selectedUserId === user?._id ? 'bg-sky-500' : ''
                                                     } `}>
 
-                                                {/*Socket is Online*/}
-                                                <div className={`avatar ${isOnline[index] ? 'online':''}`}>
+                                                <div className={`avatar ${isOnline[index] ? 'online' : ''}`}>
                                                     <div className="w-12 rounded-full">
                                                         <img src={user.profilepic} alt='user.img' />
                                                     </div>
@@ -209,13 +213,14 @@ const Sidebar = ({ onSelectUser }) => {
                                                 <div className='flex flex-col flex-1'>
                                                     <p className='font-bold text-gray-950'>{user.username}</p>
                                                 </div>
-                                                    <div>
-                                                     { newMessageUsers.receiverId === authUser._id && newMessageUsers.senderId === user._id ?
-    <div className="rounded-full bg-green-700 text-sm text-white px-[4px]">+1</div>
-    : null
-}
 
-                                                    </div>
+                                                <div>
+                                                    {newMessageUsers.receiverId === authUser._id &&
+                                                        newMessageUsers.senderId === user._id ?
+                                                        <div className="rounded-full bg-green-700 text-sm text-white px-[4px]">+1</div>
+                                                        : null
+                                                    }
+                                                </div>
                                             </div>
                                             <div className='divider divide-solid px-3 h-[1px]'></div>
                                         </div>
@@ -237,7 +242,8 @@ const Sidebar = ({ onSelectUser }) => {
     )
 }
 
-export default Sidebar
+export default Sidebar;
+
 /*
 import React, { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
