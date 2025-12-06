@@ -160,8 +160,6 @@ const MessageContainer = ({ onBackUser }) => {
 export default MessageContainer
 */
 
-
-
 import React, { useEffect, useState, useRef } from "react";
 import userConversation from "../../Zustans/useConversation";
 import { useAuth } from "../../context/AuthContext";
@@ -182,7 +180,7 @@ const MessageContainer = ({ onBackUser }) => {
 
   const lastMessageRef = useRef();
 
-  // 🚀 LISTEN FOR NEW MESSAGES
+
   useEffect(() => {
     if (!socket) return;
 
@@ -192,7 +190,6 @@ const MessageContainer = ({ onBackUser }) => {
         sound.play();
       }
 
-      // 💡 FIXED — ALWAYS USE FUNCTIONAL UPDATE
       setMessage((prev) => [...prev, newMessage]);
     };
 
@@ -201,14 +198,15 @@ const MessageContainer = ({ onBackUser }) => {
     return () => socket.off("newMessage", handleNewMessage);
   }, [socket, authUser?._id, setMessage]);
 
-  // 🚀 AUTO SCROLL TO LAST MESSAGE
+
+
   useEffect(() => {
     setTimeout(() => {
       lastMessageRef?.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
   }, [messages]);
 
-  // 🚀 FETCH MESSAGES WHEN CHAT OPENS
+
   useEffect(() => {
     const fetchMessages = async () => {
       if (!selectedConversation?._id) return;
@@ -228,26 +226,38 @@ const MessageContainer = ({ onBackUser }) => {
     fetchMessages();
   }, [selectedConversation?._id, setMessage]);
 
-  // 🚀 SEND MESSAGE
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
 
+    // DEBUG (IMPORTANT)
+    console.log("DEBUG selectedConversation:", selectedConversation);
+
+    // FIX 🟢 Correct receiverId
+    const receiverId =
+      selectedConversation?.userId || selectedConversation?._id;
+
     try {
-      const res = await axios.post(`/api/message/send/${selectedConversation._id}`, {
-        messages: sendData,
-      });
+      // save message in DB
+      const res = await axios.post(
+        `/api/message/send/${selectedConversation._id}`,
+        { messages: sendData }
+      );
 
       const sentMessage = res.data;
 
-      // 📡 SEND THROUGH SOCKET
+      // send message in real-time through socket
       socket?.emit("sendMessage", {
         senderId: authUser._id,
-        receiverId: selectedConversation._id,
+        receiverId: receiverId, // FIXED
         message: sendData,
+        _id: sentMessage._id,
+        createdAt: sentMessage.createdAt,
       });
 
-      // 💡 FIXED — ALWAYS USE FUNCTIONAL UPDATE
+      // update UI instantly
       setMessage((prev) => [...prev, sentMessage]);
 
       setSendData("");
@@ -263,7 +273,6 @@ const MessageContainer = ({ onBackUser }) => {
       bg-gradient-to-br from-[#0b141a] via-[#0a1116] to-black 
       rounded-xl shadow-lg">
 
-      
       {selectedConversation === null ? (
         <div className="flex items-center justify-center w-full h-full">
           <div className="px-4 text-center text-2xl text-white font-semibold flex flex-col items-center gap-4">
@@ -274,7 +283,7 @@ const MessageContainer = ({ onBackUser }) => {
         </div>
       ) : (
         <>
-        
+          {/* TOP BAR */}
           <div className="flex justify-between items-center 
             bg-[#202c33] px-4 py-2 rounded-lg shadow-md">
             <div className="flex items-center gap-3">
@@ -289,13 +298,14 @@ const MessageContainer = ({ onBackUser }) => {
                 className="rounded-full w-10 h-10 border-2 border-white shadow"
                 src={selectedConversation?.profilepic}
               />
+
               <span className="text-white font-bold text-lg">
                 {selectedConversation?.username}
               </span>
             </div>
           </div>
 
-         
+          {/* MESSAGES */}
           <div className="flex-1 overflow-auto px-3 py-3 space-y-3 bg-cover bg-center">
             {loading && (
               <div className="flex items-center justify-center h-full">
@@ -339,7 +349,7 @@ const MessageContainer = ({ onBackUser }) => {
               })}
           </div>
 
-       
+          {/* SEND MESSAGE */}
           <form onSubmit={handleSubmit} className="px-4 py-2">
             <div className="w-full flex items-center bg-[#202c33] rounded-full px-4 py-2 shadow-lg">
               <input
@@ -367,6 +377,7 @@ const MessageContainer = ({ onBackUser }) => {
 };
 
 export default MessageContainer;
+
 
 
 

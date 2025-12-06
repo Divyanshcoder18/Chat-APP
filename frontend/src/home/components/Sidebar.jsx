@@ -210,9 +210,11 @@ const Sidebar = ({ onSelectUser }) => {
                                                     <p className='font-bold text-gray-950'>{user.username}</p>
                                                 </div>
                                                     <div>
-                                                        { newMessageUsers.reciverId === authUser._id && newMessageUsers.senderId === user._id ?
-                                                    <div className="rounded-full bg-green-700 text-sm text-white px-[4px]">+1</div>:<></>
-                                                        }
+                                                     { newMessageUsers.receiverId === authUser._id && newMessageUsers.senderId === user._id ?
+    <div className="rounded-full bg-green-700 text-sm text-white px-[4px]">+1</div>
+    : null
+}
+
                                                     </div>
                                             </div>
                                             <div className='divider divide-solid px-3 h-[1px]'></div>
