@@ -210,6 +210,7 @@ export const SocketContextProvider = ({ children }) => {
     );
 }
 */
+/*
 import { createContext, useContext, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { useAuth } from "./AuthContext";
@@ -280,4 +281,59 @@ export const SocketContextProvider = ({ children }) => {
     </SocketContext.Provider>
   );
 };
+*/
 
+ek baar check krna isse to
+ 
+import { createContext, useContext, useEffect, useState } from "react";
+import { io } from "socket.io-client";
+import { useAuth } from "./AuthContext";
+
+const SocketContext = createContext();
+export const useSocketContext = () => useContext(SocketContext);
+
+export const SocketContextProvider = ({ children }) => {
+  const { authUser } = useAuth();
+  const [socket, setSocket] = useState(null);
+  const [onlineUser, setOnlineUser] = useState([]);
+
+  useEffect(() => {
+    if (!authUser) {
+      if (socket) socket.disconnect();
+      setSocket(null);
+      return;
+    }
+
+    const newSocket = io("https://slrtech-chatapp.onrender.com", {
+      transports: ["websocket"],
+      withCredentials: true,
+      query: {
+        userId: authUser._id,
+      },
+    });
+
+    newSocket.on("connect", () => {
+      console.log("✅ SOCKET CONNECTED:", newSocket.id);
+    });
+
+    newSocket.on("connect_error", (err) => {
+      console.log("❌ SOCKET ERROR:", err.message);
+    });
+
+    newSocket.on("getOnlineUsers", (users) => {
+      setOnlineUser(users);
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [authUser]);
+
+  return (
+    <SocketContext.Provider value={{ socket, onlineUser }}>
+      {children}
+    </SocketContext.Provider>
+  );
+};
