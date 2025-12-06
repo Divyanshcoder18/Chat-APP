@@ -283,7 +283,7 @@ export const SocketContextProvider = ({ children }) => {
 };
 */
 
-ek baar check krna isse to
+
  
 import { createContext, useContext, useEffect, useState } from "react";
 import { io } from "socket.io-client";
@@ -304,7 +304,7 @@ export const SocketContextProvider = ({ children }) => {
       return;
     }
 
-    const newSocket = io("https://slrtech-chatapp.onrender.com", {
+     const newSocket = io("https://slrtech-chatapp.onrender.com", {
       transports: ["websocket"],
       withCredentials: true,
       query: {
@@ -324,7 +324,7 @@ export const SocketContextProvider = ({ children }) => {
       setOnlineUser(users);
     });
 
-    setSocket(newSocket);
+       setSocket(newSocket);
 
     return () => {
       newSocket.disconnect();
@@ -335,5 +335,5 @@ export const SocketContextProvider = ({ children }) => {
     <SocketContext.Provider value={{ socket, onlineUser }}>
       {children}
     </SocketContext.Provider>
-  );
+  );
 };

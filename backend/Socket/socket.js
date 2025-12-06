@@ -44,7 +44,7 @@ const io = new Server(server, {
   cors: {
     origin: [
     
-      "https://chat-app-1-6v4y.onrender.com"
+      "https://divyansh-chat-app-tkuh.onrender.com"
     ],
     methods: ["GET", "POST"],
     credentials: true,
