@@ -43,7 +43,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: [
-      "http://localhost:5173",
+    
       "https://chat-app-1-6v4y.onrender.com"
     ],
     methods: ["GET", "POST"],
@@ -60,25 +60,31 @@ export const getReciverSocketId = (receiverId) => {
 io.on("connection", (socket) => {
   const userId = socket.handshake.query.userId;
 
+  console.log("🔥 User connected:", socket.id, "UserId:", userId); // <-- IMPORTANT LOG
+
   if (userId && userId !== "undefined") {
     userSocketMap[userId] = socket.id;
   }
 
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
-  // ✅ REAL-TIME MESSAGE HANDLER
+  // 📩 LISTEN FOR MESSAGE FROM SENDER
   socket.on("sendMessage", (data) => {
-    console.log("Received sendMessage:", data);
+    console.log("📩 Received sendMessage:", data);
 
     const receiverSocketId = userSocketMap[data.receiverId];
 
+    console.log("➡️ Receiver socket:", receiverSocketId);
+
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", data);
-      console.log("Forwarded to receiver:", receiverSocketId);
+      console.log("📨 Forwarded to receiver:", receiverSocketId);
     }
   });
 
+  // ❌ USER DISCONNECTED
   socket.on("disconnect", () => {
+    console.log("⚠️ User disconnected:", socket.id);
     delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
