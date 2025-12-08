@@ -304,7 +304,7 @@ export const SocketContextProvider = ({ children }) => {
       return;
     }
 
-     const newSocket = io("https://slrtech-chatapp.onrender.com", {
+     const newSocket = io("https://divyansh-chat-app-tkuh.onrender.com", {
       transports: ["websocket"],
       withCredentials: true,
       query: {
