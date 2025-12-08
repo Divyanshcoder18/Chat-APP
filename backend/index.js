@@ -15,7 +15,7 @@ dotenv.config();
 const __dirname = path.resolve();
 
 app.use(cors({
-  origin: ["http://localhost:5173", "https://chat-app-1-6v4y.onrender.com"],
+  origin: ["http://localhost:5173", "https://divyansh-chat-app-tkuh.onrender.com"],
   credentials: true
 }));
 
