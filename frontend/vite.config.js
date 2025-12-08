@@ -8,7 +8,8 @@ export default defineConfig({
     proxy:{
       '/api':{
        // target:'https://slrtech-chatapp.onrender.com/',
-         target: "http://localhost:3000", 
+         target: "https://divyansh-chat-app-tkuh.onrender.com", 
+        
         secure:false
       }
     }
