@@ -88,16 +88,16 @@ const MessageContainer = ({ onBackUser }) => {
 
   if (!selectedConversation) {
     return (
-      <div className="flex items-center justify-center w-full h-full bg-bg-primary text-text-primary">
+      <div className="flex items-center justify-center w-full h-full bg-[#111] text-gray-200">
         <div className="px-4 text-center flex flex-col items-center gap-4">
           <p className="text-3xl font-bold tracking-tighter">
             Welcome, {authUser.username}
           </p>
-          <p className="text-lg text-text-secondary">
+          <p className="text-lg text-gray-400">
             Select a conversation to start chatting.
           </p>
-          <div className="mt-4 p-4 rounded-full border border-border">
-            <TiMessages className="text-4xl text-text-primary" />
+          <div className="mt-4 p-4 rounded-full border border-gray-700">
+            <TiMessages className="text-4xl text-gray-200" />
           </div>
         </div>
       </div>
@@ -105,51 +105,56 @@ const MessageContainer = ({ onBackUser }) => {
   }
 
   return (
-    // ⭐ ONLY CHANGE → Beautiful background added here
-    <div className="flex flex-col h-full bg-gradient-to-b from-[#f8faff] via-[#f2f6ff] to-[#e8edff]">
+    // 🌙 CLASSY PREMIUM DARK BACKGROUND
+    <div className="flex flex-col h-full 
+      bg-gradient-to-b 
+      from-[#1c1c1f] via-[#141416] to-[#0e0e10] 
+      text-white">
 
-      {/* 🟢 TOP HEADER */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg-primary/70 backdrop-blur sticky top-0 z-10">
+      {/* 🟢 TOP HEADER (Frosted Glass) */}
+      <div className="flex items-center justify-between 
+        px-6 py-4 
+        border-b border-gray-800 
+        bg-[#1c1c1f]/70 backdrop-blur-xl 
+        sticky top-0 z-10 shadow-md">
 
         <div className="flex items-center gap-4">
-
           {/* BACK BUTTON */}
           <button
             onClick={() => onBackUser(true)}
-            className="bg-bg-secondary p-2 rounded-full text-text-primary hover:bg-bg-tertiary transition-colors"
+            className="bg-[#2a2a2d] p-2 rounded-full text-gray-200 hover:bg-[#3a3a3d] transition-colors"
           >
             <IoArrowBackSharp size={20} />
           </button>
 
           <img
-            className="w-10 h-10 rounded-full object-cover border border-border"
+            className="w-10 h-10 rounded-full object-cover border border-gray-700 shadow-sm"
             src={selectedConversation?.profilepic}
             alt="Profile"
           />
 
           <div className="flex flex-col">
-            <span className="text-text-primary font-bold text-lg leading-tight">
+            <span className="text-white font-bold text-lg leading-tight">
               {selectedConversation?.username}
             </span>
-            <span className="text-text-secondary text-xs font-medium">
+            <span className="text-green-400 text-xs font-medium">
               Online
             </span>
           </div>
         </div>
-
-        {/* ✔️ Eye icon removed */}
       </div>
 
       {/* 💬 MESSAGES */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+
         {loading && (
           <div className="flex items-center justify-center h-full">
-            <div className="loading loading-spinner text-text-primary"></div>
+            <div className="loading loading-spinner text-white"></div>
           </div>
         )}
 
         {!loading && messages?.length === 0 && (
-          <div className="flex h-full items-center justify-center text-text-secondary opacity-50">
+          <div className="flex h-full items-center justify-center text-gray-400 opacity-60">
             <p>No messages yet.</p>
           </div>
         )}
@@ -166,18 +171,19 @@ const MessageContainer = ({ onBackUser }) => {
               >
                 <div
                   className={`
-                    max-w-[75%] px-4 py-2 text-sm font-medium shadow-sm transition-all
+                    max-w-[75%] px-4 py-2 text-sm font-medium shadow-md transition-all
                     ${
                       isMe
-                        ? "bg-blue-600 text-white rounded-2xl rounded-tr-md"
-                        : "bg-bg-secondary text-text-primary rounded-2xl rounded-tl-md border border-border"
+                        ? "bg-blue-600 text-white rounded-2xl rounded-tr-md shadow-blue-900/50"
+                        : "bg-[#1f1f22] text-gray-200 rounded-2xl rounded-tl-md border border-gray-700"
                     }
                   `}
                 >
                   <p>{msg.message}</p>
+
                   <p
                     className={`text-[10px] mt-1 text-right opacity-60 ${
-                      isMe ? "text-gray-200" : "text-text-secondary"
+                      isMe ? "text-gray-200" : "text-gray-400"
                     }`}
                   >
                     {new Date(msg?.createdAt).toLocaleTimeString([], {
@@ -191,20 +197,25 @@ const MessageContainer = ({ onBackUser }) => {
           })}
       </div>
 
-      {/* ✍️ INPUT AREA */}
-      <form onSubmit={handleSubmit} className="p-4 bg-bg-primary/70 border-t border-border backdrop-blur">
-        <div className="flex items-center gap-2 group">
+      {/* ✍️ INPUT AREA (Glass Dark Bar) */}
+      <form
+        onSubmit={handleSubmit}
+        className="p-4 bg-[#1a1a1d]/70 border-t border-gray-800 backdrop-blur-xl shadow-inner"
+      >
+        <div className="flex items-center gap-2">
+          
           <input
             value={sendData}
             onChange={(e) => setSendData(e.target.value)}
             type="text"
             placeholder="Type a message..."
-            className="flex-1 bg-transparent border border-border px-4 py-3 text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-blue-600 transition-colors text-sm font-medium rounded-none"
+            className="flex-1 bg-[#141416] border border-gray-700 px-4 py-3 text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-blue-600 transition-colors text-sm font-medium rounded-xl shadow-sm"
           />
+
           <button
             type="submit"
             disabled={sending}
-            className="p-3 bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="p-3 bg-blue-600 rounded-xl text-white hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-blue-800/40 shadow-md"
           >
             {sending ? (
               <span className="loading loading-spinner loading-xs"></span>
@@ -219,4 +230,3 @@ const MessageContainer = ({ onBackUser }) => {
 };
 
 export default MessageContainer;
-
