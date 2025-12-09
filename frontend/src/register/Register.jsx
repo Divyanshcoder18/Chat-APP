@@ -31,36 +31,34 @@ const Register = () => {
     }));
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-  if (inputData.password !== inputData.confpassword) {
-    setLoading(false);
-    return toast.error("Passwords do not match");
-  }
-
-  try {
-    const register = await axios.post(`/api/auth/register`, inputData);
-    const data = register.data;
-
-    if (data.success === false) {
+    if (inputData.password !== inputData.confpassword) {
       setLoading(false);
-      return toast.error(data.message);
+      return toast.error("Passwords do not match");
     }
 
-    toast.success(data.message);
+    try {
+      const register = await axios.post(`/api/auth/register`, inputData);
+      const data = register.data;
 
-    // ✔ Redirect to LOGIN after register
-    navigate("/login");
+      if (!data.success) {
+        setLoading(false);
+        return toast.error(data.message);
+      }
 
-  } catch (error) {
-    toast.error(error?.response?.data?.message || "Registration failed");
-  } finally {
-    setLoading(false);
-  }
-};
-
+      toast.success(data.message);
+      localStorage.setItem("chatapp", JSON.stringify(data));
+      setAuthUser(data);
+      navigate("/");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-bg-primary p-4 my-8">
