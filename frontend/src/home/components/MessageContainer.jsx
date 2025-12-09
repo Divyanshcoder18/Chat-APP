@@ -317,7 +317,7 @@ const MessageContainer = ({ onBackUser }) => {
               <p className="text-center text-gray-300">Start the conversation...</p>
             )}
 
-            {!loading &&
+            {!loading && Array.isArray(messages) &&
               messages?.map((msg, index) => {
                 const isMe = msg.senderId === authUser._id;
                 const isLast = index === messages.length - 1;
