@@ -49,10 +49,8 @@ const Register = () => {
         return toast.error(data.message);
       }
 
-      toast.success(data.message);
-      localStorage.setItem("chatapp", JSON.stringify(data));
-      setAuthUser(data);
-      navigate("/");
+      toast.success("You have registered successfully! Now you can login.");
+      navigate("/login");
     } catch (error) {
       toast.error(error?.response?.data?.message || "Registration failed");
     } finally {
