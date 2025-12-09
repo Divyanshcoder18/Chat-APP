@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import userConversation from "../../Zustans/useConversation";
 import { useAuth } from "../../context/AuthContext";
 import { TiMessages } from "react-icons/ti";
-import { IoArrowBackSharp, IoSend, IoEyeSharp } from "react-icons/io5";
+import { IoArrowBackSharp, IoSend } from "react-icons/io5";
 import axios from "axios";
 import { useSocketContext } from "../../context/SocketContext";
 import notify from "../../assets/sound/notification.mp3";
@@ -40,7 +40,7 @@ const MessageContainer = ({ onBackUser }) => {
     }, 100);
   }, [messages]);
 
-  // 📥 Fetch Messages on Conversation Change
+  // 📥 Fetch Messages
   useEffect(() => {
     const fetchMessages = async () => {
       if (!selectedConversation?._id) return;
@@ -55,7 +55,6 @@ const MessageContainer = ({ onBackUser }) => {
     };
 
     fetchMessages();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedConversation?._id]);
 
   const handleSubmit = async (e) => {
@@ -92,8 +91,12 @@ const MessageContainer = ({ onBackUser }) => {
     return (
       <div className="flex items-center justify-center w-full h-full bg-bg-primary text-text-primary">
         <div className="px-4 text-center flex flex-col items-center gap-4">
-          <p className="text-3xl font-bold tracking-tighter">Welcome, {authUser.username}</p>
-          <p className="text-lg text-text-secondary">Select a conversation to start chatting.</p>
+          <p className="text-3xl font-bold tracking-tighter">
+            Welcome, {authUser.username}
+          </p>
+          <p className="text-lg text-text-secondary">
+            Select a conversation to start chatting.
+          </p>
           <div className="mt-4 p-4 rounded-full border border-border">
             <TiMessages className="text-4xl text-text-primary" />
           </div>
@@ -105,12 +108,15 @@ const MessageContainer = ({ onBackUser }) => {
   return (
     <div className="flex flex-col h-full bg-bg-primary">
 
-      {/* 🟢 TOP HEADER */}
+      {/* 🟢 TOP HEADER (back button added, eye removed) */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg-primary sticky top-0 z-10">
+
         <div className="flex items-center gap-4">
+          
+          {/* BACK BUTTON SHOW ALWAYS */}
           <button
             onClick={() => onBackUser(true)}
-            className="md:hidden bg-bg-secondary p-2 rounded-full text-text-primary hover:bg-bg-tertiary transition-colors"
+            className="bg-bg-secondary p-2 rounded-full text-text-primary hover:bg-bg-tertiary transition-colors"
           >
             <IoArrowBackSharp size={20} />
           </button>
@@ -120,21 +126,19 @@ const MessageContainer = ({ onBackUser }) => {
             src={selectedConversation?.profilepic}
             alt="Profile"
           />
+
           <div className="flex flex-col">
             <span className="text-text-primary font-bold text-lg leading-tight">
               {selectedConversation?.username}
             </span>
-            <span className="text-text-secondary text-xs font-medium">Online</span>
+            <span className="text-text-secondary text-xs font-medium">
+              Online
+            </span>
           </div>
         </div>
 
-        {/* 👁️ EYE BUTTON */}
-        <button
-          onClick={() => toast.info("Viewing Profile...")}
-          className="p-2 text-text-secondary hover:text-text-primary transition-colors"
-        >
-          <IoEyeSharp size={24} />
-        </button>
+        {/* ❌ REMOVED EYE ICON */}
+
       </div>
 
       {/* 💬 MESSAGES AREA */}
@@ -151,34 +155,50 @@ const MessageContainer = ({ onBackUser }) => {
           </div>
         )}
 
-        {!loading && Array.isArray(messages) && messages.map((msg, index) => {
-          const isMe = msg.senderId === authUser._id;
-          return (
-            <div
-              key={msg?._id || index}
-              ref={index === messages.length - 1 ? lastMessageRef : null}
-              className={`flex w-full ${isMe ? "justify-end" : "justify-start"}`}
-            >
+        {!loading &&
+          Array.isArray(messages) &&
+          messages.map((msg, index) => {
+            const isMe = msg.senderId === authUser._id;
+            return (
               <div
-                className={`
-                    max-w-[75%] px-4 py-2 text-sm font-medium shadow-sm transition-all
-                    ${isMe
-                    ? "bg-blue-600 text-white rounded-2xl rounded-tr-md"
-                    : "bg-bg-secondary text-text-primary rounded-2xl rounded-tl-md border border-border"}
-                  `}
+                key={msg?._id || index}
+                ref={index === messages.length - 1 ? lastMessageRef : null}
+                className={`flex w-full ${
+                  isMe ? "justify-end" : "justify-start"
+                }`}
               >
-                <p>{msg.message}</p>
-                <p className={`text-[10px] mt-1 text-right opacity-60 ${isMe ? "text-gray-200" : "text-text-secondary"}`}>
-                  {new Date(msg?.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </p>
+                <div
+                  className={`
+                    max-w-[75%] px-4 py-2 text-sm font-medium shadow-sm transition-all
+                    ${
+                      isMe
+                        ? "bg-blue-600 text-white rounded-2xl rounded-tr-md"
+                        : "bg-bg-secondary text-text-primary rounded-2xl rounded-tl-md border border-border"
+                    }
+                  `}
+                >
+                  <p>{msg.message}</p>
+                  <p
+                    className={`text-[10px] mt-1 text-right opacity-60 ${
+                      isMe ? "text-gray-200" : "text-text-secondary"
+                    }`}
+                  >
+                    {new Date(msg?.createdAt).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
 
       {/* ✍️ INPUT AREA */}
-      <form onSubmit={handleSubmit} className="p-4 bg-bg-primary border-t border-border">
+      <form
+        onSubmit={handleSubmit}
+        className="p-4 bg-bg-primary border-t border-border"
+      >
         <div className="flex items-center gap-2 group">
           <input
             value={sendData}
@@ -192,7 +212,11 @@ const MessageContainer = ({ onBackUser }) => {
             disabled={sending}
             className="p-3 bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            {sending ? <span className="loading loading-spinner loading-xs"></span> : <IoSend size={18} />}
+            {sending ? (
+              <span className="loading loading-spinner loading-xs"></span>
+            ) : (
+              <IoSend size={18} />
+            )}
           </button>
         </div>
       </form>
