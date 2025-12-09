@@ -185,12 +185,20 @@ const MessageContainer = ({ onBackUser }) => {
     if (!socket) return;
 
     const handleNewMessage = (newMessage) => {
+      console.log("🔵 [SOCKET] newMessage event received:", newMessage);
+      console.log("🔵 [SOCKET] Current messages before update:", messages);
+
       if (newMessage.senderId !== authUser._id) {
         const sound = new Audio(notify);
         sound.play();
       }
 
-      setMessage((prev) => [...prev, newMessage]);
+      setMessage((prev) => {
+        console.log("🔵 [SOCKET] Previous messages in setMessage:", prev);
+        const updated = [...prev, newMessage];
+        console.log("🔵 [SOCKET] Updated messages after adding new:", updated);
+        return updated;
+      });
     };
 
     socket.on("newMessage", handleNewMessage);
@@ -206,18 +214,36 @@ const MessageContainer = ({ onBackUser }) => {
     }, 100);
   }, [messages]);
 
+  // 🔍 DEBUG: Track messages state changes
+  useEffect(() => {
+    console.log("📊 [STATE] messages updated:", messages);
+    console.log("📊 [STATE] messages count:", messages?.length);
+  }, [messages]);
+
+  // 🔍 DEBUG: Track selectedConversation changes
+  useEffect(() => {
+    console.log("👤 [STATE] selectedConversation changed:", selectedConversation);
+  }, [selectedConversation]);
+
 
   useEffect(() => {
     const fetchMessages = async () => {
       if (!selectedConversation?._id) return;
 
+      console.log("🟡 [API] Fetching messages for conversation:", selectedConversation._id);
+      console.log("🟡 [API] Current messages before fetch:", messages);
+
       setLoading(true);
 
       try {
         const res = await axios.get(`/api/message/${selectedConversation._id}`);
+        console.log("🟡 [API] Received messages from server:", res.data);
+        console.log("🟡 [API] Number of messages received:", res.data?.length);
+
         setMessage(res.data);
+        console.log("🟡 [API] Messages updated in state");
       } catch (err) {
-        console.log(err);
+        console.log("❌ [API] Error fetching messages:", err);
       }
 
       setLoading(false);
@@ -232,12 +258,19 @@ const MessageContainer = ({ onBackUser }) => {
     e.preventDefault();
     setSending(true);
 
+    console.log("🟢 [SEND] Starting to send message...");
+    console.log("🟢 [SEND] Message content:", sendData);
+    console.log("🟢 [SEND] Current messages before send:", messages);
+    console.log("🟢 [SEND] selectedConversation:", selectedConversation);
+
     // DEBUG (IMPORTANT)
     console.log("DEBUG selectedConversation:", selectedConversation);
 
     // FIX 🟢 Correct receiverId
     const receiverId =
       selectedConversation?.userId || selectedConversation?._id;
+
+    console.log("🟢 [SEND] Receiver ID:", receiverId);
 
     try {
       // save message in DB
@@ -247,6 +280,8 @@ const MessageContainer = ({ onBackUser }) => {
       );
 
       const sentMessage = res.data;
+      console.log("🟢 [SEND] Server response (sentMessage):", sentMessage);
+      console.log("🟢 [SEND] Current messages before updating state:", messages);
 
       // send message in real-time through socket
       socket?.emit("sendMessage", {
@@ -256,13 +291,20 @@ const MessageContainer = ({ onBackUser }) => {
         _id: sentMessage._id,
         createdAt: sentMessage.createdAt,
       });
+      console.log("🟢 [SEND] Socket emit sendMessage completed");
 
       // update UI instantly
-      setMessage((prev) => [...prev, sentMessage]);
+      setMessage((prev) => {
+        console.log("🟢 [SEND] Previous messages in setMessage:", prev);
+        const updated = [...prev, sentMessage];
+        console.log("🟢 [SEND] Updated messages after adding sent message:", updated);
+        return updated;
+      });
 
       setSendData("");
+      console.log("🟢 [SEND] Message sent successfully!");
     } catch (err) {
-      console.log(err);
+      console.log("❌ [SEND] Error sending message:", err);
     }
 
     setSending(false);
