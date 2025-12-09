@@ -20,7 +20,8 @@ const Sidebar = ({ onSelectUser }) => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [newMessageUsers, setNewMessageUsers] = useState("");
 
-  const { selectedConversation, setSelectedConversation, messages } = userConversation();
+  const { selectedConversation, setSelectedConversation, messages } =
+    userConversation();
   const { onlineUser, socket } = useSocketContext();
 
   const normalize = (id) => String(id);
@@ -48,7 +49,7 @@ const Sidebar = ({ onSelectUser }) => {
       setLoading(false);
     };
     loadChatters();
-  }, [messages?.length]); // Re-fetch when message count changes (new message sent/received)
+  }, [messages?.length]);
 
   const handleSearchSubmit = async (e) => {
     e.preventDefault();
@@ -91,82 +92,143 @@ const Sidebar = ({ onSelectUser }) => {
   };
 
   return (
-    <div className="h-full w-[320px] bg-bg-primary border-r border-border flex flex-col transition-colors duration-200">
-
-      {/* HEADER / SEARCH */}
-      <div className="p-6 pb-2">
+    <div
+      className="
+        h-full w-[320px] 
+        bg-gradient-to-b from-white via-[#f7f7f9] to-[#efeff3] 
+        border-r border-border 
+        flex flex-col 
+        transition-colors duration-200
+      "
+    >
+      {/* HEADER */}
+      <div className="p-6 pb-4 bg-white/70 backdrop-blur-md shadow-sm rounded-b-xl">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">Chats</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+            Chats
+          </h1>
           <img
             onClick={() => toast.info("Profile coming soon!")}
             src={authUser?.profilepic}
-            className="h-10 w-10 rounded-full border border-border cursor-pointer hover:opacity-80 transition-opacity"
+            className="h-10 w-10 rounded-full border border-border cursor-pointer hover:opacity-80 transition-opacity shadow-sm"
             alt="Profile"
           />
         </div>
 
+        {/* SEARCH BAR */}
         <form onSubmit={handleSearchSubmit} className="relative group">
-          <FaSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-text-primary transition-colors" size={14} />
+          <FaSearch
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
+            size={14}
+          />
           <input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             type="text"
             placeholder="Search..."
-            className="w-full bg-transparent border-b border-border py-2 pl-6 text-text-primary outline-none focus:border-text-primary transition-colors placeholder:text-text-secondary"
+            className="
+              w-full bg-white/70 border border-border 
+              py-2 pl-9 pr-3 
+              rounded-lg shadow-sm 
+              focus:shadow-md 
+              text-text-primary 
+              outline-none 
+              transition-all
+            "
           />
         </form>
       </div>
 
       {/* USER LIST */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide px-2">
-        {loading && <div className="text-center p-4 text-text-secondary text-sm">Loading...</div>}
+      <div className="flex-1 overflow-y-auto px-3 scrollbar-hide mt-2">
+        {loading && (
+          <div className="text-center p-4 text-text-secondary text-sm">
+            Loading...
+          </div>
+        )}
 
-        {!loading && (searchUser.length > 0 ? searchUser : chatUser).map((user) => (
-          <div
-            key={user._id}
-            onClick={() => handleUserClick(user)}
-            className={`
-              group flex items-center gap-4 p-3 mb-1 cursor-pointer transition-all duration-200 border border-transparent
-              ${selectedUserId === user._id
-                ? "bg-black text-white dark:bg-white dark:text-black shadow-lg shadow-black/10 dark:shadow-white/5"
-                : "hover:bg-bg-secondary text-text-primary"}
-            `}
-          >
-            <div className="relative">
-              <img src={user.profilepic} className="w-10 h-10 rounded-full bg-bg-secondary object-cover" alt="User" />
-              {(onlineUser.some(id => id.toString() === user._id.toString()) || onlineUser.map(normalize).includes(normalize(user._id))) && (
-                <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 ${selectedUserId === user._id ? "border-black dark:border-white bg-green-400" : "border-bg-primary bg-green-500"}`}></span>
-              )}
-            </div>
-
-            <div className="flex flex-col flex-1 min-w-0">
-              <div className="flex justify-between items-baseline">
-                <p className={`font-medium truncate ${selectedUserId === user._id ? "font-semibold" : ""}`}>
-                  {user.username}
-                </p>
-                {newMessageUsers?.senderId === user._id && (
-                  <span className={`text-[10px] w-5 h-5 flex items-center justify-center rounded-full ${selectedUserId === user._id ? "bg-white text-black" : "bg-black text-white"}`}>
-                    1
-                  </span>
+        {!loading &&
+          (searchUser.length > 0 ? searchUser : chatUser).map((user) => (
+            <div
+              key={user._id}
+              onClick={() => handleUserClick(user)}
+              className={`
+                group flex items-center gap-4 p-3 mb-2 cursor-pointer 
+                transition-all duration-200 border border-transparent 
+                rounded-xl shadow-sm
+                ${
+                  selectedUserId === user._id
+                    ? "bg-black text-white dark:bg-white dark:text-black shadow-lg scale-[1.02]"
+                    : "hover:bg-[#f1f1f5] text-text-primary hover:shadow-md"
+                }
+              `}
+            >
+              <div className="relative">
+                <img
+                  src={user.profilepic}
+                  className="w-11 h-11 rounded-full object-cover shadow-sm"
+                  alt="User"
+                />
+                {(onlineUser.some((id) => id.toString() === user._id.toString()) ||
+                  onlineUser.map(normalize).includes(normalize(user._id))) && (
+                  <span
+                    className={`
+                      absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 
+                      ${
+                        selectedUserId === user._id
+                          ? "border-black dark:border-white bg-green-400"
+                          : "border-white bg-green-500"
+                      }
+                    `}
+                  ></span>
                 )}
               </div>
+
+              <div className="flex flex-col flex-1 min-w-0">
+                <div className="flex justify-between items-center">
+                  <p
+                    className={`font-medium truncate ${
+                      selectedUserId === user._id ? "font-semibold" : ""
+                    }`}
+                  >
+                    {user.username}
+                  </p>
+
+                  {newMessageUsers?.senderId === user._id && (
+                    <span
+                      className={`
+                        text-[10px] w-5 h-5 flex items-center justify-center 
+                        rounded-full shadow-sm
+                        ${
+                          selectedUserId === user._id
+                            ? "bg-white text-black"
+                            : "bg-black text-white"
+                        }
+                      `}
+                    >
+                      1
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
 
         {!loading && chatUser.length === 0 && searchUser.length === 0 && (
           <div className="text-center mt-10 text-text-secondary text-sm">
             <p>No conversations yet.</p>
-            <p className="text-xs opacity-60 mt-1">Search for a user to start.</p>
+            <p className="text-xs opacity-60 mt-1">
+              Search for a user to start.
+            </p>
           </div>
         )}
       </div>
 
       {/* FOOTER */}
-      <div className="p-4 border-t border-border mt-auto">
+      <div className="p-4 border-t border-border bg-white/60 backdrop-blur-md shadow-inner mt-auto">
         <button
           onClick={searchUser.length > 0 ? handleSearchBack : handleLogout}
-          className="flex items-center gap-3 text-text-secondary hover:text-text-primary transition-colors text-sm font-medium w-full p-2"
+          className="flex items-center gap-3 text-text-secondary hover:text-text-primary transition-colors text-sm font-medium w-full p-2 rounded-lg"
         >
           {searchUser.length > 0 ? (
             <>
@@ -186,6 +248,7 @@ const Sidebar = ({ onSelectUser }) => {
 };
 
 export default Sidebar;
+
 
 /*
 import React, { useEffect, useState } from "react";
