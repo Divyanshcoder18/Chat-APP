@@ -41,51 +41,22 @@ import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
-    <>
-      {/* MAIN WRAPPER */}
-      <div className="w-screen h-screen bg-gray-100 flex items-center justify-center">
+    <div className="w-full min-h-screen bg-bg-primary text-text-primary">
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-        {/* ROUTES */}
-        <Routes>
+        <Route element={<VerifyUser />}>
+          <Route path="/" element={
+            <div className="h-screen overflow-hidden">
+              <Home />
+            </div>
+          } />
+        </Route>
+      </Routes>
 
-          {/* LOGIN PAGE */}
-          <Route
-            path="/login"
-            element={
-              <div className="w-full h-full flex items-center justify-center bg-white shadow-lg rounded-xl p-6 max-w-md">
-                <Login />
-              </div>
-            }
-          />
-
-          {/* REGISTER PAGE */}
-          <Route
-            path="/register"
-            element={
-              <div className="w-full h-full flex items-center justify-center bg-white shadow-lg rounded-xl p-6 max-w-md">
-                <Register />
-              </div>
-            }
-          />
-
-          {/* PROTECTED ROUTES */}
-          <Route element={<VerifyUser />}>
-            <Route
-              path="/"
-              element={
-                <div className="w-full h-full">
-                  <Home />
-                </div>
-              }
-            />
-          </Route>
-        </Routes>
-
-        {/* TOAST NOTIFICATIONS */}
-        <ToastContainer position="top-center" autoClose={2000} theme="dark" />
-
-      </div>
-    </>
+      <ToastContainer position="top-center" autoClose={2000} theme="dark" />
+    </div>
   );
 }
 

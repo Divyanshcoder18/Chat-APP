@@ -1,37 +1,38 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import MessageContainer from './components/MessageContainer';
 
 const Home = () => {
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
-  const [selectedUser , setSelectedUser] = useState(null);
-  const [isSidebarVisible , setIsSidebarVisible]= useState(true);
-
-  const handelUserSelect=(user)=>{
+  const handleUserSelect = (user) => {
     setSelectedUser(user);
     setIsSidebarVisible(false);
-  }
-  const handelShowSidebar=()=>{
+  };
+
+  const handleShowSidebar = () => {
     setIsSidebarVisible(true);
     setSelectedUser(null);
-  }
-  return (
+  };
 
-    <div className='flex justify-between min-w-full
-     md:min-w-[550px] md:max-w-[65%]
-      px-2 h-[95%] md:h-full  
-      rounded-xl shadow-lg
-       bg-gray-400 bg-clip-padding
-        backdrop-filter backdrop-blur-lg 
-        bg-opacity-0'
-        >
-      <div className={`w-full py-2 md:flex ${isSidebarVisible ? '' : 'hidden'}`}>
-      <Sidebar onSelectUser={handelUserSelect}/>
+  return (
+    <div className="flex w-full h-full bg-bg-primary overflow-hidden">
+      {/* SIDEBAR WRAPPER */}
+      <div className={`
+        w-full md:w-[320px] md:flex h-full border-r border-border
+        ${isSidebarVisible ? 'block' : 'hidden'} 
+        ${selectedUser ? 'hidden md:block' : 'block'}
+      `}>
+        <Sidebar onSelectUser={handleUserSelect} />
       </div>
-      <div className={`divider divider-horizontal px-3 md:flex
-         ${isSidebarVisible ? '' : 'hidden'} ${selectedUser ? 'block' : 'hidden'}`}></div>
-      <div className={`flex-auto ${selectedUser ? '' : 'hidden md:flex'} bg-gray-200}`}>
-      <MessageContainer onBackUser={handelShowSidebar}/>
+
+      {/* MESSAGE CONTAINER WRAPPER */}
+      <div className={`
+        flex-1 h-full bg-bg-primary
+        ${selectedUser ? 'block' : 'hidden md:flex items-center justify-center'}
+      `}>
+        <MessageContainer onBackUser={handleShowSidebar} />
       </div>
     </div>
   );
