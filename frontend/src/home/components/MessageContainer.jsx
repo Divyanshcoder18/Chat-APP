@@ -6,7 +6,6 @@ import { IoArrowBackSharp, IoSend } from "react-icons/io5";
 import axios from "axios";
 import { useSocketContext } from "../../context/SocketContext";
 import notify from "../../assets/sound/notification.mp3";
-import { toast } from "react-toastify";
 
 const MessageContainer = ({ onBackUser }) => {
   const { messages, selectedConversation, setMessage } = userConversation();
@@ -33,7 +32,7 @@ const MessageContainer = ({ onBackUser }) => {
     return () => socket.off("newMessage", handleNewMessage);
   }, [socket, authUser?._id, setMessage]);
 
-  // 📜 Auto Scroll to Bottom
+  // 📜 Auto Scroll
   useEffect(() => {
     setTimeout(() => {
       lastMessageRef?.current?.scrollIntoView({ behavior: "smooth" });
@@ -73,7 +72,7 @@ const MessageContainer = ({ onBackUser }) => {
 
       socket?.emit("sendMessage", {
         senderId: authUser._id,
-        receiverId: receiverId,
+        receiverId,
         message: sendData,
         _id: sentMessage._id,
         createdAt: sentMessage.createdAt,
@@ -106,14 +105,15 @@ const MessageContainer = ({ onBackUser }) => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-bg-primary">
+    // ⭐ ONLY CHANGE → Beautiful background added here
+    <div className="flex flex-col h-full bg-gradient-to-b from-[#f8faff] via-[#f2f6ff] to-[#e8edff]">
 
-      {/* 🟢 TOP HEADER (back button added, eye removed) */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg-primary sticky top-0 z-10">
+      {/* 🟢 TOP HEADER */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg-primary/70 backdrop-blur sticky top-0 z-10">
 
         <div className="flex items-center gap-4">
-          
-          {/* BACK BUTTON SHOW ALWAYS */}
+
+          {/* BACK BUTTON */}
           <button
             onClick={() => onBackUser(true)}
             className="bg-bg-secondary p-2 rounded-full text-text-primary hover:bg-bg-tertiary transition-colors"
@@ -137,12 +137,11 @@ const MessageContainer = ({ onBackUser }) => {
           </div>
         </div>
 
-        {/* ❌ REMOVED EYE ICON */}
-
+        {/* ✔️ Eye icon removed */}
       </div>
 
-      {/* 💬 MESSAGES AREA */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-bg-primary">
+      {/* 💬 MESSAGES */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {loading && (
           <div className="flex items-center justify-center h-full">
             <div className="loading loading-spinner text-text-primary"></div>
@@ -163,9 +162,7 @@ const MessageContainer = ({ onBackUser }) => {
               <div
                 key={msg?._id || index}
                 ref={index === messages.length - 1 ? lastMessageRef : null}
-                className={`flex w-full ${
-                  isMe ? "justify-end" : "justify-start"
-                }`}
+                className={`flex w-full ${isMe ? "justify-end" : "justify-start"}`}
               >
                 <div
                   className={`
@@ -195,10 +192,7 @@ const MessageContainer = ({ onBackUser }) => {
       </div>
 
       {/* ✍️ INPUT AREA */}
-      <form
-        onSubmit={handleSubmit}
-        className="p-4 bg-bg-primary border-t border-border"
-      >
+      <form onSubmit={handleSubmit} className="p-4 bg-bg-primary/70 border-t border-border backdrop-blur">
         <div className="flex items-center gap-2 group">
           <input
             value={sendData}
@@ -225,3 +219,4 @@ const MessageContainer = ({ onBackUser }) => {
 };
 
 export default MessageContainer;
+
