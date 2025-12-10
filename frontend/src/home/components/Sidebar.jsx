@@ -110,6 +110,7 @@ const Sidebar = ({ onSelectUser }) => {
           <img
             onClick={() => toast.info("Profile coming soon!")}
             src={authUser?.profilepic}
+            onError={(e) => { e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${authUser?.username || 'User'}`; }}
             className="h-10 w-10 rounded-full border border-border cursor-pointer hover:opacity-80 transition-opacity shadow-sm"
             alt="Profile"
           />
@@ -156,40 +157,38 @@ const Sidebar = ({ onSelectUser }) => {
                 group flex items-center gap-4 p-3 mb-2 cursor-pointer 
                 transition-all duration-200 border border-transparent 
                 rounded-xl shadow-sm
-                ${
-                  selectedUserId === user._id
-                    ? "bg-black text-white dark:bg-white dark:text-black shadow-lg scale-[1.02]"
-                    : "hover:bg-[#f1f1f5] text-text-primary hover:shadow-md"
+                ${selectedUserId === user._id
+                  ? "bg-black text-white dark:bg-white dark:text-black shadow-lg scale-[1.02]"
+                  : "hover:bg-[#f1f1f5] text-text-primary hover:shadow-md"
                 }
               `}
             >
               <div className="relative">
                 <img
                   src={user.profilepic}
+                  onError={(e) => { e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${user.username}`; }}
                   className="w-11 h-11 rounded-full object-cover shadow-sm"
                   alt="User"
                 />
                 {(onlineUser.some((id) => id.toString() === user._id.toString()) ||
                   onlineUser.map(normalize).includes(normalize(user._id))) && (
-                  <span
-                    className={`
+                    <span
+                      className={`
                       absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 
-                      ${
-                        selectedUserId === user._id
+                      ${selectedUserId === user._id
                           ? "border-black dark:border-white bg-green-400"
                           : "border-white bg-green-500"
-                      }
+                        }
                     `}
-                  ></span>
-                )}
+                    ></span>
+                  )}
               </div>
 
               <div className="flex flex-col flex-1 min-w-0">
                 <div className="flex justify-between items-center">
                   <p
-                    className={`font-medium truncate ${
-                      selectedUserId === user._id ? "font-semibold" : ""
-                    }`}
+                    className={`font-medium truncate ${selectedUserId === user._id ? "font-semibold" : ""
+                      }`}
                   >
                     {user.username}
                   </p>
@@ -199,10 +198,9 @@ const Sidebar = ({ onSelectUser }) => {
                       className={`
                         text-[10px] w-5 h-5 flex items-center justify-center 
                         rounded-full shadow-sm
-                        ${
-                          selectedUserId === user._id
-                            ? "bg-white text-black"
-                            : "bg-black text-white"
+                        ${selectedUserId === user._id
+                          ? "bg-white text-black"
+                          : "bg-black text-white"
                         }
                       `}
                     >
