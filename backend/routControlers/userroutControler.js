@@ -97,12 +97,9 @@ export const userRegister = async (req, res) => {
     const user = await User.findOne({ username, email });
     if (user) return res.status(500).send({ success: false, message: " UserName or Email Alredy Exist " });
     const hashPassword = bcryptjs.hashSync(password, 10);
-    // Using UI Avatars - a reliable service that generates initials-based avatars
-    // Format: background color, text color, name, size
-    const defaultProfilePic = profilepic || `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random&color=fff&size=200&bold=true`;
+    const profileBoy = profilepic || `https://avatar.iran.liara.run/public/boy?username=${username}`;
 
-    const profileBoy = defaultProfilePic;
-    const profileGirl = defaultProfilePic;
+    const profileGirl = profilepic || `https://avatar.iran.liara.run/public/girl?username=${username}`;
 
     const newUser = new User({
       fullname,
